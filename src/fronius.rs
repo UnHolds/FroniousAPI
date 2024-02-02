@@ -135,24 +135,41 @@ pub struct CommonResponseHeader {
     timestamp: time::OffsetDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct UnitAndValue<T> {
-    unit: String,
-    value: T,
+mod inner {
+    use super::*;
+    pub trait ValuesContainer {
+        type Container<T: DeserializeOwned>: DeserializeOwned;
+    }
+
+    #[derive(Debug)]
+    pub struct SingleValue;
+    impl ValuesContainer for SingleValue {
+        type Container<T: DeserializeOwned> = UnitAndValue<T>;
+    }
+
+    #[derive(Debug)]
+    pub struct ManyValues;
+    impl ValuesContainer for ManyValues {
+        type Container<T: DeserializeOwned> = UnitAndValues<T>;
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+    pub struct CumulationInverterDataProto<C: inner::ValuesContainer> {
+        pub pac: C::Container<f64>,
+        pub day_energy: C::Container<f64>,
+        pub year_energy: C::Container<f64>,
+        pub total_energy: C::Container<f64>,
+        #[serde(rename = "DeviceStatus")]
+        pub device_status: Option<HashMap<String, serde_json::Value>>,
+    }
 }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommonResponseBody<T> {
     data: T,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct UnitAndValues<T> {
-    unit: String,
-    values: HashMap<String, T>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -195,15 +212,23 @@ pub trait DataCollection: DeserializeOwned {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub struct CumulationInverterData {
-    pac: UnitAndValue<u64>,
-    day_energy: UnitAndValue<f64>,
-    year_energy: UnitAndValue<f64>,
-    total_energy: UnitAndValue<f64>,
-    #[serde(rename = "DeviceStatus")]
-    device_status: Option<HashMap<String, serde_json::Value>>,
+#[serde(rename_all = "PascalCase")]
+pub struct UnitAndValues<T> {
+    unit: String,
+    values: HashMap<String, Option<T>>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct UnitAndValue<T> {
+    unit: String,
+    value: Option<T>,
+}
+
+
+pub type CumulationInverterData = inner::CumulationInverterDataProto<inner::SingleValue>;
+
+pub type CumulationInverterDataSystem = inner::CumulationInverterDataProto<inner::ManyValues>;
 
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
