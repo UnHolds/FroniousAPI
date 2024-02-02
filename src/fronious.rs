@@ -35,7 +35,7 @@ pub enum StatusCode {
     ConfigIOError = 10,
     NotSupported = 11,
     DeviceNotAvailable = 12,
-    UnknownError = 255
+    UnknownError = 255,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,7 +43,7 @@ pub enum StatusCode {
 pub struct Status {
     code: StatusCode,
     reason: String,
-    user_message: String
+    user_message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,13 +59,13 @@ pub struct CommonResponseHeader {
 #[serde(rename_all = "PascalCase")]
 pub struct UnitAndValue<T> {
     unit: String,
-    value: T
+    value: T,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct CommonResponseBody<T>{
-    data: T
+pub struct CommonResponseBody<T> {
+    data: T,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,10 +88,7 @@ pub struct ApiVersion {
 pub fn get_api_version(ip: IpAddr) -> Result<ApiVersion, Box<dyn std::error::Error>> {
     let mut url = reqwest::Url::parse("http://placeholder.local/solar_api/GetAPIVersion.cgi")?;
     let _ = url.set_ip_host(ip);
-    Ok(reqwest::blocking::Client::new()
-        .get(url)
-        .send()?
-        .json()?)
+    Ok(reqwest::blocking::Client::new().get(url).send()?.json()?)
 }
 
 pub enum Scope {
@@ -130,8 +127,6 @@ pub enum DataCollection {
     MinMaxInverterData,
 }
 
-
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CumulationInverterData<T> {
@@ -139,23 +134,23 @@ pub struct CumulationInverterData<T> {
     day_energy: T,
     year_energy: T,
     total_energy: T,
-    device_status: Option<std::collections::HashMap<String, String>>
+    device_status: Option<std::collections::HashMap<String, String>>,
 }
-
-
 
 pub fn get_inverter_realtime_data(
     ip: IpAddr,
     scope: Scope,
-) -> Result<FroniousResponse<>, Box<dyn std::error::Error>> {
-
-    let mut params: Vec<(&str, String)>= vec![];
+) -> Result<FroniousResponse, Box<dyn std::error::Error>> {
+    let mut params: Vec<(&str, String)> = vec![];
 
     match scope {
         Scope::System => {
             params.push(("Scope", "System".to_owned()));
-        },
-        Scope::Device { device_id, data_collection } => {
+        }
+        Scope::Device {
+            device_id,
+            data_collection,
+        } => {
             params.push(("Scope", "Device".to_owned()));
             params.push(("DeviceId", (u8::from(device_id)).to_string()));
             params.push(("DataCollection", data_collection.to_string()));
