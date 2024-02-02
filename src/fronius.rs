@@ -267,6 +267,25 @@ pub struct CommonInverterData {
     pub device_status: DeviceStatus,
 }
 
+pub type ThreePInverterData = ThreePhaseInverterData;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct ThreePhaseInverterData {
+    iac_l1: UnitAndValue<f64>,
+    iac_l2: UnitAndValue<f64>,
+    iac_l3: UnitAndValue<f64>,
+    uac_l1: UnitAndValue<f64>,
+    uac_l2: UnitAndValue<f64>,
+    uac_l3: UnitAndValue<f64>,
+    t_ambient: Option<UnitAndValue<f64>>,
+    rotation_speed_fan_fl: Option<UnitAndValue<f64>>,
+    rotation_speed_fan_fr: Option<UnitAndValue<f64>>,
+    rotation_speed_fan_bl: Option<UnitAndValue<f64>>,
+    rotation_speed_fan_br: Option<UnitAndValue<f64>>,
+}
+
+
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
         "CumulationInverterData"
@@ -276,5 +295,11 @@ impl DataCollection for CumulationInverterData {
 impl DataCollection for CommonInverterData {
     fn param_value() -> &'static str {
         "CommonInverterData"
+    }
+}
+
+impl DataCollection for ThreePhaseInverterData {
+    fn param_value() -> &'static str {
+        "3PInverterData"
     }
 }
