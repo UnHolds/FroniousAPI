@@ -1,17 +1,21 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::net::IpAddr;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub struct ValueError(String);
-
-impl std::fmt::Display for ValueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Invalid value given! Reason: {}", self.0)
-    }
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("unsupported API version {0}")]
+    UnsupportedApiVersion(u64),
+    #[error("invalid endpoint {0:?}")]
+    InvalidEndpoint(String),
+    #[error("request failed")]
+    Request(#[from] reqwest::Error),
+    #[error("decoding response body failed")]
+    Decode(#[from] serde_json::Error),
+    #[error("received error response {:?}: {}", .0.code, .0.reason)]
+    Response(Status),
 }
-
-impl std::error::Error for ValueError {}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -94,14 +98,18 @@ pub fn get_api_version(ip: IpAddr) -> Result<ApiVersion, Box<dyn std::error::Err
 
 pub struct DeviceId(u8);
 
-impl TryFrom<u8> for DeviceId {
-    type Error = ValueError;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+#[error("invalid device ID, must be less than 100: {0}")]
+pub struct InvalidDeviceId(u8);
 
-    fn try_from(device_id: u8) -> Result<Self, ValueError> {
+impl TryFrom<u8> for DeviceId {
+    type Error = InvalidDeviceId;
+
+    fn try_from(device_id: u8) -> Result<Self, InvalidDeviceId> {
         if device_id <= 99 {
             Ok(Self(device_id))
         } else {
-            Err(ValueError("device id not in range!".into()))
+            Err(InvalidDeviceId(device_id))
         }
     }
 }
