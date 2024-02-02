@@ -1,6 +1,7 @@
 use reqwest::{blocking::Client, Url};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use time::OffsetDateTime;
 use std::{borrow::Borrow, collections::HashMap, net::IpAddr};
 use thiserror::Error;
 
@@ -116,6 +117,28 @@ impl Fronius {
         let response: CommonResponseBody<_> = self.make_request(
             "GetActiveDeviceInfo.cgi",
             [] as [(&str, &str); 0],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_meter_realtime_data_system(&self) -> Result<MeterDataSystem, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetMeterRealtimeData.cgi",
+            [
+                ("Scope", "System")
+            ],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_meter_realtime_data_device(&self,  device_id: DeviceId) -> Result<MeterDataSystem, Error> {
+        let device_id = u8::from(device_id).to_string();
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetMeterRealtimeData.cgi",
+            [
+                ("Scope", "System"),
+                ("DeviceId", &device_id),
+            ],
         )?;
         Ok(response.data)
     }
@@ -374,5 +397,111 @@ pub type DeviceInfos = HashMap<DeviceType, HashMap<String, Option<DeviceInfo>>>;
 pub struct DeviceInfo {
     #[serde(rename = "DT")]
     dt: i64,
+    serial: String
+}
+
+pub type MeterDataSystem = HashMap<String, MeterData>;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct MeterData {
+    details: MeterDetails,
+    #[serde(rename = "Current_AC_Phase_1")]
+    current_ac_phase_1: Option<f64>,
+    #[serde(rename = "Current_AC_Phase_2")]
+    current_ac_phase_2: Option<f64>,
+    #[serde(rename = "Current_AC_Phase_3")]
+    current_ac_phase_3: Option<f64>,
+    #[serde(rename = "Current_AC_Sum")]
+    current_ac_sum: Option<f64>,
+    enable: u8,
+    #[serde(rename = "EnergyReactive_VArAC_Phase_1_Consumed")]
+    energy_reactive_va_r_ac_phase_1_consumed: Option<f64>,
+    #[serde(rename = "EnergyReactive_VArAC_Phase_1_Produced")]
+    energy_reactive_va_r_ac_phase_1_produced: Option<f64>,
+    #[serde(rename = "EnergyReactive_VArAC_Sum_Consumed")]
+    energy_reactive_va_r_ac_sum_consumed: Option<f64>,
+    #[serde(rename = "EnergyReactive_VArAC_Sum_Produced")]
+    energy_reactive_va_r_ac_sum_produced: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Minus_Absolute")]
+    energy_real_wac_minus_absolute: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_1_Consumed")]
+    energy_real_wac_phase_1_consumed: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_1_Produced")]
+    energy_real_wac_phase_1_produced: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_2_Consumed")]
+    energy_real_wac_phase_2_consumed: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_2_Produced")]
+    energy_real_wac_phase_2_produced: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_3_Consumed")]
+    energy_real_wac_phase_3_consumed: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Phase_3_Produced")]
+    energy_real_wac_phase_3_produced: Option<f64>,
+    #[serde(rename = "EnergyReal_WAC_Plus_Absolute")]
+    energy_real_wac_plus_absolute: f64,
+    #[serde(rename = "EnergyReal_WAC_Sum_Consumed")]
+    energy_real_wac_sum_consumed: f64,
+    #[serde(rename = "EnergyReal_WAC_Sum_Produced")]
+    energy_real_wac_sum_produced: f64,
+    #[serde(rename = "Frequency_Phase_Average")]
+    frequency_phase_average: f64,
+    #[serde(rename = "Meter_Location_Current")]
+    meter_location_current: f64,
+    #[serde(rename = "PowerApparent_S_Phase_1")]
+    power_apparent_s_phase_1: Option<f64>,
+    #[serde(rename = "PowerApparent_S_Phase_2")]
+    power_apparent_s_phase_2: Option<f64>,
+    #[serde(rename = "PowerApparent_S_Phase_3")]
+    power_apparent_s_phase_3: Option<f64>,
+    #[serde(rename = "PowerApparent_S_Sum")]
+    power_apparent_s_sum: f64,
+    #[serde(rename = "PowerFactor_Phase_1")]
+    power_factor_phase_1: Option<f64>,
+    #[serde(rename = "PowerFactor_Phase_2")]
+    power_factor_phase_2: Option<f64>,
+    #[serde(rename = "PowerFactor_Phase_3")]
+    power_factor_phase_3: Option<f64>,
+    #[serde(rename = "PowerFactor_Sum")]
+    power_factor_sum: f64,
+    #[serde(rename = "PowerReactive_Q_Phase_1")]
+    power_reactive_q_phase_1: Option<f64>,
+    #[serde(rename = "PowerReactive_Q_Phase_2")]
+    power_reactive_q_phase_2: Option<f64>,
+    #[serde(rename = "PowerReactive_Q_Phase_3")]
+    power_reactive_q_phase_3: Option<f64>,
+    #[serde(rename = "PowerReactive_Q_Sum")]
+    power_reactive_q_sum: f64,
+    #[serde(rename = "PowerReal_P_Phase_1")]
+    power_real_p_phase_1: Option<f64>,
+    #[serde(rename = "PowerReal_P_Phase_2")]
+    power_real_p_phase_2: Option<f64>,
+    #[serde(rename = "PowerReal_P_Phase_3")]
+    power_real_p_phase_3: Option<f64>,
+    #[serde(rename = "PowerReal_P_Sum")]
+    power_real_p_sum: f64,
+    #[serde(with = "time::serde::timestamp")]
+    time_stamp: time::OffsetDateTime,
+    visible: u8,
+    #[serde(rename = "Voltage_AC_PhaseToPhase_12")]
+    voltage_ac_phase_to_phase_12: Option<f64>,
+    #[serde(rename = "Voltage_AC_PhaseToPhase_23")]
+    voltage_ac_phase_to_phase_23: Option<f64>,
+    #[serde(rename = "Voltage_AC_PhaseToPhase_31")]
+    voltage_ac_phase_to_phase_31: Option<f64>,
+    #[serde(rename = "Voltage_AC_Phase_1")]
+    voltage_ac_phase_1: Option<f64>,
+    #[serde(rename = "Voltage_AC_Phase_2")]
+    voltage_ac_phase_2: Option<f64>,
+    #[serde(rename = "Voltage_AC_Phase_3")]
+    voltage_ac_phase_3: Option<f64>,
+    #[serde(rename = "Voltage_AC_Phase_Average")]
+    voltage_ac_phase_average: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct MeterDetails {
+    manufacturer: String,
+    model: String,
     serial: String
 }
