@@ -186,6 +186,15 @@ impl Fronius {
         )?;
         Ok(response.data)
     }
+
+    pub fn get_power_flow_realtime_data(&self) -> Result<PowerFlow, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetPowerFlowRealtimeData.fcgi",
+            [] as [(&str, &str); 0],
+        )?;
+        Ok(response.data)
+    }
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -649,4 +658,83 @@ pub enum OhmPilotCodeOfState {
     CriticalFault= 3,
     Fault = 4,
     BoostMode = 5
+}
+
+
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PowerFlow {
+    version: String,
+    site: PowerFlowSite,
+    inverters: HashMap<String, PowerFlowInverter>,
+    smartloads: HashMap<String, HashMap<String, PowerFlowOhmPilots>>,
+    secondary_meters: Option<HashMap<String, PowerFlowSecondaryMeters>>
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PowerFlowSite {
+    mode: String,
+    battery_standby: Option<bool>,
+    backup_mode: Option<bool>,
+    #[serde(rename = "P_Grid")]
+    p_grid: Option<f64>,
+    #[serde(rename = "P_Load")]
+    p_load: Option<f64>,
+    #[serde(rename = "P_Akku")]
+    p_akku: Option<f64>,
+    #[serde(rename = "P_PV")]
+    p_pv: f64,
+    #[serde(rename = "rel_SelfConsumption")]
+    rel_self_consumption: Option<f64>,
+    #[serde(rename = "rel_Autonomy")]
+    rel_autonomy: Option<f64>,
+    #[serde(rename = "Meter_Location")]
+    meter_location: Option<String>,
+    #[serde(rename = "E_Day")]
+    e_day: Option<f64>,
+    #[serde(rename = "E_Year")]
+    e_year: Option<f64>,
+    #[serde(rename = "E_Total")]
+    e_total: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PowerFlowInverter {
+    #[serde(rename = "DT")]
+    dt: i64,
+    p: f64,
+    #[serde(rename = "SOC")]
+    soc: Option<f64>,
+    #[serde(rename = "CID")]
+    cid: Option<u32>,
+    #[serde(rename = "Battery_Mode")]
+    battery_mode: Option<String>,
+    #[serde(rename = "E_Day")]
+    e_day: Option<f64>,
+    #[serde(rename = "E_Year")]
+    e_year: Option<f64>,
+    #[serde(rename = "E_Total")]
+    e_total: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PowerFlowOhmPilots {
+    #[serde(rename = "P_AC_Total")]
+    p_ac_total: f64,
+    state: String,
+    temperature: f64
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PowerFlowSecondaryMeters {
+    p: f64,
+    m_loc: f64,
+    label: String,
+    category: String
 }
