@@ -1,4 +1,5 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::net::IpAddr;
 
 #[derive(Debug)]
@@ -19,7 +20,7 @@ pub struct FroniousResponse<T> {
     body: T,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
 pub enum StatusCode {
     Okay = 0,
