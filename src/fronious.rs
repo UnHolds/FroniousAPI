@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::net::IpAddr;
 
 #[derive(Debug)]
@@ -91,14 +91,6 @@ pub fn get_api_version(ip: IpAddr) -> Result<ApiVersion, Box<dyn std::error::Err
     Ok(reqwest::blocking::Client::new().get(url).send()?.json()?)
 }
 
-pub enum Scope {
-    System,
-    Device {
-        device_id: DeviceId,
-        data_collection: DataCollection,
-    },
-}
-
 pub struct DeviceId(u8);
 
 impl TryFrom<u8> for DeviceId {
@@ -119,46 +111,41 @@ impl From<DeviceId> for u8 {
     }
 }
 
-#[derive(strum_macros::Display)]
-pub enum DataCollection {
-    CumulationInverterData,
-    CommonInverterData,
-    ThreePInverterData,
-    MinMaxInverterData,
+pub trait DataCollection: DeserializeOwned {
+    /// Returns the value of the `DataCollection` GET parameter for this collection.
+    fn param_value() -> &'static str;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct CumulationInverterData<T> {
-    pac: T,
-    day_energy: T,
-    year_energy: T,
-    total_energy: T,
-    device_status: Option<std::collections::HashMap<String, String>>,
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct CumulationInverterData {
+    pac: UnitAndValue<u64>,
+    day_energy: UnitAndValue<f64>,
+    year_energy: UnitAndValue<f64>,
+    total_energy: UnitAndValue<f64>,
+    #[serde(rename = "DeviceStatus")]
+    device_status: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-pub fn get_inverter_realtime_data(
-    ip: IpAddr,
-    scope: Scope,
-) -> Result<FroniousResponse, Box<dyn std::error::Error>> {
-    let mut params: Vec<(&str, String)> = vec![];
-
-    match scope {
-        Scope::System => {
-            params.push(("Scope", "System".to_owned()));
-        }
-        Scope::Device {
-            device_id,
-            data_collection,
-        } => {
-            params.push(("Scope", "Device".to_owned()));
-            params.push(("DeviceId", (u8::from(device_id)).to_string()));
-            params.push(("DataCollection", data_collection.to_string()));
-        }
+impl DataCollection for CumulationInverterData {
+    fn param_value() -> &'static str {
+        "CumulationInverterData"
     }
+}
+
+pub fn get_inverter_realtime_data_device<C: DataCollection>(
+    ip: IpAddr,
+    device_id: DeviceId,
+) -> Result<FroniousResponse<CommonResponseBody<C>>, Box<dyn std::error::Error>> {
+    let device_id = u8::from(device_id).to_string();
+    let params = [
+        ("Scope", "Device"),
+        ("DeviceId", &device_id),
+        ("DataCollection", C::param_value()),
+    ];
 
     let mut url = reqwest::Url::parse_with_params(
-        &format!("http://placeholder.local/solar_api/v1/GetInverterRealtimeData.cgi"),
+        "http://placeholder.local/solar_api/v1/GetInverterRealtimeData.cgi",
         &params,
     )?;
     let _ = url.set_ip_host(ip);
