@@ -164,6 +164,28 @@ impl Fronius {
         )?;
         Ok(response.data)
     }
+
+    pub fn get_ohm_pilot_realtime_data_system(&self) -> Result<OhmPilotDataSystem, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetOhmPilotRealtimeData.cgi",
+            [
+                ("Scope", "System")
+            ],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_ohm_pilot_realtime_data_device(&self,  device_id: DeviceId) -> Result<OhmPilotData, Error> {
+        let device_id = u8::from(device_id).to_string();
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetOhmPilotRealtimeData.cgi",
+            [
+                ("Scope", "Device"),
+                ("DeviceId", &device_id),
+            ],
+        )?;
+        Ok(response.data)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -589,4 +611,42 @@ pub struct StorageModule {
     voltage_dc_maximum_cell: Option<f64>,
     #[serde(rename = "Voltage_DC_Minimum_Cell")]
     voltage_dc_minimum_cell: Option<f64>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct OhmPilotDetails {
+    serial: String,
+    model: String,
+    manufacturer: String,
+    software: String,
+    hardware: String
+}
+
+pub type OhmPilotDataSystem = HashMap<String, OhmPilotData>;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct OhmPilotData {
+    details: OhmPilotDetails,
+    #[serde(rename = "EnergyReal_WAC_Sum_Consumed")]
+    energy_real_wac_sum_consumed: f64,
+    code_of_state: OhmPilotCodeOfState,
+    code_of_error: Option<u64>,
+    #[serde(rename = "PowerReal_PAC_Sum")]
+    power_real_pac_sum: f64,
+    #[serde(rename = "Temperature_Channel_1")]
+    temperature_channel_1: f64
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum OhmPilotCodeOfState {
+    UpAndRunning = 0,
+    KeepMinimumTemperature = 1,
+    LegionellaProtection = 2,
+    CriticalFault= 3,
+    Fault = 4,
+    BoostMode = 5
 }
