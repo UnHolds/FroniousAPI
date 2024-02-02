@@ -1,6 +1,7 @@
+use reqwest::{blocking::Client, Url};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{collections::HashMap, net::IpAddr};
+use std::{borrow::Borrow, collections::HashMap, net::IpAddr};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -17,6 +18,80 @@ pub enum Error {
     Response(Status),
 }
 
+pub struct Fronius {
+    client: Client,
+    base_url: Url,
+}
+
+impl Fronius {
+    pub fn connect(ip: IpAddr) -> Result<Self, Error> {
+        let client = Client::new();
+
+        let mut url = reqwest::Url::parse("http://placeholder.local/solar_api/GetAPIVersion.cgi")
+            .expect("Initial base URL should be valid");
+        url.set_ip_host(ip)
+            .expect("Base URL should be a valid base");
+        let api_version: ApiVersion = client.get(url.clone()).send()?.json()?;
+
+        if api_version.api_version != 1 {
+            return Err(Error::UnsupportedApiVersion(api_version.api_version));
+        }
+
+        url.set_path(&api_version.base_url);
+
+        Ok(Self {
+            client,
+            base_url: url,
+        })
+    }
+
+    fn make_request_inner(&self, url: Url) -> Result<serde_json::Value, Error> {
+        let response: FroniousResponse<serde_json::Value> = self.client.get(url).send()?.json()?;
+
+        if response.head.status.code != StatusCode::Okay {
+            return Err(Error::Response(response.head.status));
+        }
+
+        Ok(response.body)
+    }
+
+    pub fn make_request<T, I, K, V>(&self, endpoint: &str, params: I) -> Result<T, Error>
+    where
+        T: DeserializeOwned,
+        I: IntoIterator,
+        I::Item: Borrow<(K, V)>,
+        K: AsRef<str>,
+        V: AsRef<str>,
+    {
+        let mut url = self
+            .base_url
+            .join(endpoint)
+            .map_err(|_e| Error::InvalidEndpoint(endpoint.to_string()))?;
+        url.query_pairs_mut().extend_pairs(params);
+        let body = self.make_request_inner(url)?;
+
+        Ok(T::deserialize(body)?)
+    }
+
+    pub fn get_inverter_realtime_data_device<C: DataCollection>(
+        &self,
+        device_id: DeviceId,
+    ) -> Result<C, Error> {
+        let device_id = u8::from(device_id).to_string();
+
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetInverterRealtimeData.cgi",
+            [
+                ("Scope", "Device"),
+                ("DeviceId", &device_id),
+                ("DataCollection", C::param_value()),
+            ],
+        )?;
+
+        Ok(response.data)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct FroniousResponse<T> {
@@ -24,7 +99,7 @@ pub struct FroniousResponse<T> {
     body: T,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
 pub enum StatusCode {
     Okay = 0,
@@ -82,18 +157,12 @@ pub struct UnitAndValues<T> {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct ApiVersion {
+struct ApiVersion {
     #[serde(rename = "APIVersion")]
-    api_version: i8,
+    api_version: u64,
     #[serde(rename = "BaseURL")]
     base_url: String,
     compatibility_range: String,
-}
-
-pub fn get_api_version(ip: IpAddr) -> Result<ApiVersion, Box<dyn std::error::Error>> {
-    let mut url = reqwest::Url::parse("http://placeholder.local/solar_api/GetAPIVersion.cgi")?;
-    let _ = url.set_ip_host(ip);
-    Ok(reqwest::blocking::Client::new().get(url).send()?.json()?)
 }
 
 pub struct DeviceId(u8);
@@ -140,23 +209,4 @@ impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
         "CumulationInverterData"
     }
-}
-
-pub fn get_inverter_realtime_data_device<C: DataCollection>(
-    ip: IpAddr,
-    device_id: DeviceId,
-) -> Result<FroniousResponse<CommonResponseBody<C>>, Box<dyn std::error::Error>> {
-    let device_id = u8::from(device_id).to_string();
-    let params = [
-        ("Scope", "Device"),
-        ("DeviceId", &device_id),
-        ("DataCollection", C::param_value()),
-    ];
-
-    let mut url = reqwest::Url::parse_with_params(
-        "http://placeholder.local/solar_api/v1/GetInverterRealtimeData.cgi",
-        &params,
-    )?;
-    let _ = url.set_ip_host(ip);
-    Ok(reqwest::blocking::Client::new().get(url).send()?.json()?)
 }
