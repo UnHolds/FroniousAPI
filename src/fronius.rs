@@ -1,9 +1,9 @@
 use reqwest::{blocking::Client, Url};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use time::OffsetDateTime;
 use std::{borrow::Borrow, collections::HashMap, net::IpAddr};
 use thiserror::Error;
+use time::OffsetDateTime;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -92,109 +92,80 @@ impl Fronius {
         Ok(response.data)
     }
 
-    pub fn get_inverter_realtime_data_system(
-        &self,
-    ) -> Result<CumulationInverterDataSystem, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetInverterRealtimeData.cgi",
-            [
-                ("Scope", "System")
-            ],
-        )?;
+    pub fn get_inverter_realtime_data_system(&self) -> Result<CumulationInverterDataSystem, Error> {
+        let response: CommonResponseBody<_> =
+            self.make_request("GetInverterRealtimeData.cgi", [("Scope", "System")])?;
         Ok(response.data)
     }
 
     pub fn get_inverter_info(&self) -> Result<InverterInfos, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetInverterInfo.cgi",
-            [
-            ] as [(&str, &str); 0],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetInverterInfo.cgi", [] as [(&str, &str); 0])?;
         Ok(response.data)
     }
 
     pub fn get_active_device_info(&self) -> Result<DeviceInfos, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetActiveDeviceInfo.cgi",
-            [] as [(&str, &str); 0],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetActiveDeviceInfo.cgi", [] as [(&str, &str); 0])?;
         Ok(response.data)
     }
 
     pub fn get_meter_realtime_data_system(&self) -> Result<MeterDataSystem, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetMeterRealtimeData.cgi",
-            [
-                ("Scope", "System")
-            ],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetMeterRealtimeData.cgi", [("Scope", "System")])?;
         Ok(response.data)
     }
 
-    pub fn get_meter_realtime_data_device(&self,  device_id: DeviceId) -> Result<MeterData, Error> {
+    pub fn get_meter_realtime_data_device(&self, device_id: DeviceId) -> Result<MeterData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
             "GetMeterRealtimeData.cgi",
-            [
-                ("Scope", "Device"),
-                ("DeviceId", &device_id),
-            ],
+            [("Scope", "Device"), ("DeviceId", &device_id)],
         )?;
         Ok(response.data)
     }
 
     pub fn get_storage_realtime_data_system(&self) -> Result<StorageDataSystem, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetStorageRealtimeData.cgi",
-            [
-                ("Scope", "System")
-            ],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetStorageRealtimeData.cgi", [("Scope", "System")])?;
         Ok(response.data)
     }
 
-    pub fn get_storage_realtime_data_device(&self,  device_id: DeviceId) -> Result<StorageData, Error> {
+    pub fn get_storage_realtime_data_device(
+        &self,
+        device_id: DeviceId,
+    ) -> Result<StorageData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
             "GetStorageRealtimeData.cgi",
-            [
-                ("Scope", "Device"),
-                ("DeviceId", &device_id),
-            ],
+            [("Scope", "Device"), ("DeviceId", &device_id)],
         )?;
         Ok(response.data)
     }
 
     pub fn get_ohm_pilot_realtime_data_system(&self) -> Result<OhmPilotDataSystem, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetOhmPilotRealtimeData.cgi",
-            [
-                ("Scope", "System")
-            ],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetOhmPilotRealtimeData.cgi", [("Scope", "System")])?;
         Ok(response.data)
     }
 
-    pub fn get_ohm_pilot_realtime_data_device(&self,  device_id: DeviceId) -> Result<OhmPilotData, Error> {
+    pub fn get_ohm_pilot_realtime_data_device(
+        &self,
+        device_id: DeviceId,
+    ) -> Result<OhmPilotData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
             "GetOhmPilotRealtimeData.cgi",
-            [
-                ("Scope", "Device"),
-                ("DeviceId", &device_id),
-            ],
+            [("Scope", "Device"), ("DeviceId", &device_id)],
         )?;
         Ok(response.data)
     }
 
     pub fn get_power_flow_realtime_data(&self) -> Result<PowerFlow, Error> {
-        let response: CommonResponseBody<_> = self.make_request(
-            "GetPowerFlowRealtimeData.fcgi",
-            [] as [(&str, &str); 0],
-        )?;
+        let response: CommonResponseBody<_> =
+            self.make_request("GetPowerFlowRealtimeData.fcgi", [] as [(&str, &str); 0])?;
         Ok(response.data)
     }
-
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -237,7 +208,7 @@ pub struct CommonResponseHeader {
     request_arguments: HashMap<String, String>,
     status: Status,
     #[serde(with = "time::serde::rfc3339")]
-    timestamp: time::OffsetDateTime,
+    timestamp: OffsetDateTime,
 }
 
 type DeviceStatus = Option<HashMap<String, serde_json::Value>>;
@@ -270,9 +241,7 @@ mod inner {
         #[serde(rename = "DeviceStatus")]
         pub device_status: DeviceStatus,
     }
-
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -333,7 +302,6 @@ pub struct UnitAndValue<T> {
     value: Option<T>,
 }
 
-
 pub type CumulationInverterData = inner::CumulationInverterDataProto<inner::SingleValue>;
 
 pub type CumulationInverterDataSystem = inner::CumulationInverterDataProto<inner::ManyValues>;
@@ -378,7 +346,6 @@ pub struct ThreePhaseInverterData {
     rotation_speed_fan_br: Option<UnitAndValue<f64>>,
 }
 
-
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
         "CumulationInverterData"
@@ -397,9 +364,6 @@ impl DataCollection for ThreePhaseInverterData {
     }
 }
 
-
-
-
 pub type InverterInfos = HashMap<String, Option<InverterInfo>>;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -415,7 +379,7 @@ pub struct InverterInfo {
     unique_id: String,
     error_code: i64,
     status_code: InverterStatusCode,
-    inverter_state: String
+    inverter_state: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
@@ -429,7 +393,7 @@ pub enum InverterStatusCode {
     Idle = 11,
     Ready = 12,
     Sleeping = 13,
-    Unknown = 255
+    Unknown = 255,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -440,7 +404,7 @@ pub enum DeviceType {
     SensorCard,
     StringControl,
     Meter,
-    System
+    System,
 }
 
 pub type DeviceInfos = HashMap<DeviceType, HashMap<String, Option<DeviceInfo>>>;
@@ -450,7 +414,7 @@ pub type DeviceInfos = HashMap<DeviceType, HashMap<String, Option<DeviceInfo>>>;
 pub struct DeviceInfo {
     #[serde(rename = "DT")]
     dt: i64,
-    serial: String
+    serial: String,
 }
 
 pub type MeterDataSystem = HashMap<String, MeterData>;
@@ -533,7 +497,7 @@ pub struct MeterData {
     #[serde(rename = "PowerReal_P_Sum")]
     power_real_p_sum: f64,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: time::OffsetDateTime,
+    time_stamp: OffsetDateTime,
     visible: u8,
     #[serde(rename = "Voltage_AC_PhaseToPhase_12")]
     voltage_ac_phase_to_phase_12: Option<f64>,
@@ -556,9 +520,8 @@ pub struct MeterData {
 pub struct DeviceDetails {
     manufacturer: String,
     model: String,
-    serial: String
+    serial: String,
 }
-
 
 pub type StorageDataSystem = HashMap<String, StorageData>;
 
@@ -569,13 +532,12 @@ pub struct StorageData {
     modules: Vec<StorageModule>,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StorageController {
     details: DeviceDetails,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: time::OffsetDateTime,
+    time_stamp: OffsetDateTime,
     enable: u8,
     #[serde(rename = "StateOfCharge_Relative")]
     state_of_charge_relative: f64,
@@ -613,7 +575,7 @@ pub struct StorageModule {
     #[serde(rename = "Temperature_Cell_Minimum")]
     temperature_cell_minimum: Option<f64>,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: time::OffsetDateTime,
+    time_stamp: OffsetDateTime,
     #[serde(rename = "Voltage_DC")]
     voltage_dc: Option<f64>,
     #[serde(rename = "Voltage_DC_Maximum_Cell")]
@@ -622,7 +584,6 @@ pub struct StorageModule {
     voltage_dc_minimum_cell: Option<f64>,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct OhmPilotDetails {
@@ -630,7 +591,7 @@ pub struct OhmPilotDetails {
     model: String,
     manufacturer: String,
     software: String,
-    hardware: String
+    hardware: String,
 }
 
 pub type OhmPilotDataSystem = HashMap<String, OhmPilotData>;
@@ -646,7 +607,7 @@ pub struct OhmPilotData {
     #[serde(rename = "PowerReal_PAC_Sum")]
     power_real_pac_sum: f64,
     #[serde(rename = "Temperature_Channel_1")]
-    temperature_channel_1: f64
+    temperature_channel_1: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
@@ -655,12 +616,10 @@ pub enum OhmPilotCodeOfState {
     UpAndRunning = 0,
     KeepMinimumTemperature = 1,
     LegionellaProtection = 2,
-    CriticalFault= 3,
+    CriticalFault = 3,
     Fault = 4,
-    BoostMode = 5
+    BoostMode = 5,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -669,9 +628,8 @@ pub struct PowerFlow {
     site: PowerFlowSite,
     inverters: HashMap<String, PowerFlowInverter>,
     smartloads: HashMap<String, HashMap<String, PowerFlowOhmPilots>>,
-    secondary_meters: Option<HashMap<String, PowerFlowSecondaryMeters>>
+    secondary_meters: Option<HashMap<String, PowerFlowSecondaryMeters>>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -727,7 +685,7 @@ pub struct PowerFlowOhmPilots {
     #[serde(rename = "P_AC_Total")]
     p_ac_total: f64,
     state: String,
-    temperature: f64
+    temperature: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -736,5 +694,5 @@ pub struct PowerFlowSecondaryMeters {
     p: f64,
     m_loc: f64,
     label: String,
-    category: String
+    category: String,
 }
