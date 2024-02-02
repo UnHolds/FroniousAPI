@@ -102,6 +102,23 @@ impl Fronius {
         )?;
         Ok(response.data)
     }
+
+    pub fn get_inverter_info(&self) -> Result<InverterInfos, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetInverterInfo.cgi",
+            [
+            ] as [(&str, &str); 0],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_active_device_info(&self) -> Result<DeviceInfos, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetActiveDeviceInfo.cgi",
+            [] as [(&str, &str); 0],
+        )?;
+        Ok(response.data)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -302,4 +319,60 @@ impl DataCollection for ThreePhaseInverterData {
     fn param_value() -> &'static str {
         "3PInverterData"
     }
+}
+
+
+
+
+pub type InverterInfos = HashMap<String, Option<InverterInfo>>;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct InverterInfo {
+    #[serde(rename = "DT")]
+    dt: i64,
+    #[serde(rename = "PVPower")]
+    pv_power: i64,
+    custom_name: String,
+    show: u64,
+    #[serde(rename = "UniqueID")]
+    unique_id: String,
+    error_code: i64,
+    status_code: InverterStatusCode,
+    inverter_state: String
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum InverterStatusCode {
+    Startup = 0, //0-6
+    Running = 7,
+    Standby = 8,
+    Bootloading = 9,
+    Error = 10,
+    Idle = 11,
+    Ready = 12,
+    Sleeping = 13,
+    Unknown = 255
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DeviceType {
+    Inverter,
+    Storage,
+    Ohmpilot,
+    SensorCard,
+    StringControl,
+    Meter,
+    System
+}
+
+pub type DeviceInfos = HashMap<DeviceType, HashMap<String, Option<DeviceInfo>>>;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct DeviceInfo {
+    #[serde(rename = "DT")]
+    dt: i64,
+    serial: String
 }
