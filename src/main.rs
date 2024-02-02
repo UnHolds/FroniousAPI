@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use fronius::{CumulationInverterData, DeviceId, Fronius};
+use fronius::{ThreePhaseInverterData, DeviceId, Fronius};
 mod fronius;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,9 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fronius = Fronius::connect(ip)?;
     println!(
         "{:#?}",
-        fronius.get_inverter_realtime_data_device::<CumulationInverterData>(
-            DeviceId::try_from(1).unwrap(),
-        )?
+        fronius.get_storage_realtime_data_system()?
     );
     //println!("{:#?}", fronious::get_inverter_realtime_data(ip, fronious::Scope::System)?);
     Ok(())

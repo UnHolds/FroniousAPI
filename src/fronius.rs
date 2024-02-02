@@ -131,12 +131,34 @@ impl Fronius {
         Ok(response.data)
     }
 
-    pub fn get_meter_realtime_data_device(&self,  device_id: DeviceId) -> Result<MeterDataSystem, Error> {
+    pub fn get_meter_realtime_data_device(&self,  device_id: DeviceId) -> Result<MeterData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
             "GetMeterRealtimeData.cgi",
             [
-                ("Scope", "System"),
+                ("Scope", "Device"),
+                ("DeviceId", &device_id),
+            ],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_storage_realtime_data_system(&self) -> Result<StorageDataSystem, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetStorageRealtimeData.cgi",
+            [
+                ("Scope", "System")
+            ],
+        )?;
+        Ok(response.data)
+    }
+
+    pub fn get_storage_realtime_data_device(&self,  device_id: DeviceId) -> Result<StorageData, Error> {
+        let device_id = u8::from(device_id).to_string();
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetStorageRealtimeData.cgi",
+            [
+                ("Scope", "Device"),
                 ("DeviceId", &device_id),
             ],
         )?;
@@ -405,7 +427,7 @@ pub type MeterDataSystem = HashMap<String, MeterData>;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct MeterData {
-    details: MeterDetails,
+    details: DeviceDetails,
     #[serde(rename = "Current_AC_Phase_1")]
     current_ac_phase_1: Option<f64>,
     #[serde(rename = "Current_AC_Phase_2")]
@@ -500,8 +522,71 @@ pub struct MeterData {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct MeterDetails {
+pub struct DeviceDetails {
     manufacturer: String,
     model: String,
     serial: String
+}
+
+
+pub type StorageDataSystem = HashMap<String, StorageData>;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StorageData {
+    controller: StorageController,
+    modules: Vec<StorageModule>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StorageController {
+    details: DeviceDetails,
+    #[serde(with = "time::serde::timestamp")]
+    time_stamp: time::OffsetDateTime,
+    enable: u8,
+    #[serde(rename = "StateOfCharge_Relative")]
+    state_of_charge_relative: f64,
+    #[serde(rename = "Capacity_Maximum")]
+    capacity_maximum: f64,
+    #[serde(rename = "Current_DC")]
+    current_dc: f64,
+    #[serde(rename = "Voltage_DC")]
+    voltage_dc: f64,
+    #[serde(rename = "Temperature_Cell")]
+    temperature_cell: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StorageModule {
+    details: Option<DeviceDetails>,
+    #[serde(rename = "Capacity_Maximum")]
+    capacity_maximum: Option<f64>,
+    #[serde(rename = "Current_DC")]
+    current_dc: Option<f64>,
+    #[serde(rename = "CycleCount_BatteryCell")]
+    cycle_count_battery_cell: Option<f64>,
+    #[serde(rename = "DesignedCapacity")]
+    designed_capacity: Option<f64>,
+    enable: Option<u8>,
+    #[serde(rename = "StateOfCharge_Relative")]
+    state_of_charge_relative: Option<f64>,
+    #[serde(rename = "Status_BatteryCell")]
+    status_battery_cell: Option<u64>,
+    #[serde(rename = "Temperature_Cell")]
+    temperature_cell: Option<f64>,
+    #[serde(rename = "Temperature_Cell_Maximum")]
+    temperature_cell_maximum: Option<f64>,
+    #[serde(rename = "Temperature_Cell_Minimum")]
+    temperature_cell_minimum: Option<f64>,
+    #[serde(with = "time::serde::timestamp")]
+    time_stamp: time::OffsetDateTime,
+    #[serde(rename = "Voltage_DC")]
+    voltage_dc: Option<f64>,
+    #[serde(rename = "Voltage_DC_Maximum_Cell")]
+    voltage_dc_maximum_cell: Option<f64>,
+    #[serde(rename = "Voltage_DC_Minimum_Cell")]
+    voltage_dc_minimum_cell: Option<f64>,
 }
