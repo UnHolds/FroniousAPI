@@ -46,7 +46,7 @@ impl Fronius {
     }
 
     fn make_request_inner(&self, url: Url) -> Result<serde_json::Value, Error> {
-        let response: FroniousResponse<serde_json::Value> = self.client.get(url).send()?.json()?;
+        let response: FroniusResponse<serde_json::Value> = self.client.get(url).send()?.json()?;
 
         if response.head.status.code != StatusCode::Okay {
             return Err(Error::Response(response.head.status));
@@ -94,7 +94,7 @@ impl Fronius {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct FroniousResponse<T> {
+pub struct FroniusResponse<T> {
     head: CommonResponseHeader,
     body: T,
 }

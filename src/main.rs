@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 
-use fronious::{CumulationInverterData, DeviceId, Fronius};
-mod fronious;
+use fronius::{CumulationInverterData, DeviceId, Fronius};
+mod fronius;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 69, 0, 50));
