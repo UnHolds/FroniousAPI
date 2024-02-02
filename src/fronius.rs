@@ -90,6 +90,18 @@ impl Fronius {
 
         Ok(response.data)
     }
+
+    pub fn get_inverter_realtime_data_system(
+        &self,
+    ) -> Result<CumulationInverterDataSystem, Error> {
+        let response: CommonResponseBody<_> = self.make_request(
+            "GetInverterRealtimeData.cgi",
+            [
+                ("Scope", "System")
+            ],
+        )?;
+        Ok(response.data)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
