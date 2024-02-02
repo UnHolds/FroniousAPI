@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::net::IpAddr;
+use std::{collections::HashMap, net::IpAddr};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -54,7 +54,7 @@ pub struct Status {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommonResponseHeader {
-    request_arguments: std::collections::HashMap<String, String>,
+    request_arguments: HashMap<String, String>,
     status: Status,
     #[serde(with = "time::serde::rfc3339")]
     timestamp: time::OffsetDateTime,
@@ -77,7 +77,7 @@ pub struct CommonResponseBody<T> {
 #[serde(rename_all = "PascalCase")]
 pub struct UnitAndValues<T> {
     unit: String,
-    values: std::collections::HashMap<String, T>,
+    values: HashMap<String, T>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -133,7 +133,7 @@ pub struct CumulationInverterData {
     year_energy: UnitAndValue<f64>,
     total_energy: UnitAndValue<f64>,
     #[serde(rename = "DeviceStatus")]
-    device_status: Option<std::collections::HashMap<String, serde_json::Value>>,
+    device_status: Option<HashMap<String, serde_json::Value>>,
 }
 
 impl DataCollection for CumulationInverterData {
