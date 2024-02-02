@@ -147,6 +147,8 @@ pub struct CommonResponseHeader {
     timestamp: time::OffsetDateTime,
 }
 
+type DeviceStatus = Option<HashMap<String, serde_json::Value>>;
+
 mod inner {
     use super::*;
     pub trait ValuesContainer {
@@ -173,8 +175,9 @@ mod inner {
         pub year_energy: C::Container<f64>,
         pub total_energy: C::Container<f64>,
         #[serde(rename = "DeviceStatus")]
-        pub device_status: Option<HashMap<String, serde_json::Value>>,
+        pub device_status: DeviceStatus,
     }
+
 }
 
 
@@ -242,8 +245,36 @@ pub type CumulationInverterData = inner::CumulationInverterDataProto<inner::Sing
 
 pub type CumulationInverterDataSystem = inner::CumulationInverterDataProto<inner::ManyValues>;
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct CommonInverterData {
+    pac: UnitAndValue<f64>,
+    sac: UnitAndValue<f64>,
+    iac: UnitAndValue<f64>,
+    uac: UnitAndValue<f64>,
+    fac: UnitAndValue<f64>,
+    idc: UnitAndValue<f64>,
+    idc_2: UnitAndValue<f64>,
+    idc_3: UnitAndValue<f64>,
+    idc_4: UnitAndValue<f64>,
+    udc: UnitAndValue<f64>,
+    udc_2: UnitAndValue<f64>,
+    udc_3: UnitAndValue<f64>,
+    udc_4: UnitAndValue<f64>,
+    day_energy: UnitAndValue<f64>,
+    year_energy: UnitAndValue<f64>,
+    total_energy: UnitAndValue<f64>,
+    pub device_status: DeviceStatus,
+}
+
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
         "CumulationInverterData"
+    }
+}
+
+impl DataCollection for CommonInverterData {
+    fn param_value() -> &'static str {
+        "CommonInverterData"
     }
 }
