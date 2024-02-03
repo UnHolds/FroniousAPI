@@ -1,4 +1,4 @@
-use std::{future, net::IpAddr};
+use std::{future, net::IpAddr, str::FromStr};
 
 use fronius::{DeviceId, Fronius};
 use influxdb2::{Client, FromDataPoint};
@@ -307,47 +307,49 @@ fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
     let ohm_pilot_data = get_ohm_pilot_data(fronius, &ohm_pilot_id)?;
     let power_flow_data = get_power_flow_data(fronius)?;
 
-    let client = Client::new("http://10.69.0.5:8086", "Local", "7xh2Mi8NAQANT7erOTxkjKlH7tEUlFYmOq9sy4bl-JUsG0_pwu85CzUJk-77fMKVKN3hwXDoY6HPhw3n9Lga6g==");
+    let client = Client::new(std::env::var("INFLUX_DB_URL")?, std::env::var("INFLUX_DB_ORG")?, std::env::var("INFLUX_DB_TOKEN")?);
+    let bucket = std::env::var("INFLUX_DB_BUCKET")?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_data])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_phase_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_phase_data])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_info])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_info])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![meter_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![meter_data])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![storage_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![storage_data])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![ohm_pilot_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![ohm_pilot_data])))?;
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![power_flow_data])))?;
+        .block_on(client.write(&bucket, futures::stream::iter(vec![power_flow_data])))?;
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 69, 0, 50));
+    let ip_str = std::env::var("FRONIUS_IP")?;
+    let ip = IpAddr::V4(std::net::Ipv4Addr::from_str(&ip_str)?);
     let fronius = Fronius::connect(ip)?;
     loop {
         fetch_data(&fronius)?;

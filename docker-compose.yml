@@ -2,3 +2,9 @@ services:
   fronius:
     build:
       dockerfile: Dockerfile
+    environment:
+      - FRONIUS_IP=10.69.0.50
+      - INFLUX_DB_URL=http://10.69.0.5:8086
+      - INFLUX_DB_ORG=Local
+      - INFLUX_DB_TOKEN=7xh2Mi8NAQANT7erOTxkjKlH7tEUlFYmOq9sy4bl-JUsG0_pwu85CzUJk-77fMKVKN3hwXDoY6HPhw3n9Lga6g==
+      - INFLUX_DB_BUCKET=photovoltaics
