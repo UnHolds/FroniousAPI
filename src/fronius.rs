@@ -76,7 +76,7 @@ impl Fronius {
 
     pub fn get_inverter_realtime_data_device<C: DataCollection>(
         &self,
-        device_id: DeviceId,
+        device_id: &DeviceId,
     ) -> Result<C, Error> {
         let device_id = u8::from(device_id).to_string();
 
@@ -116,7 +116,7 @@ impl Fronius {
         Ok(response.data)
     }
 
-    pub fn get_meter_realtime_data_device(&self, device_id: DeviceId) -> Result<MeterData, Error> {
+    pub fn get_meter_realtime_data_device(&self, device_id: &DeviceId) -> Result<MeterData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
             "GetMeterRealtimeData.cgi",
@@ -133,7 +133,7 @@ impl Fronius {
 
     pub fn get_storage_realtime_data_device(
         &self,
-        device_id: DeviceId,
+        device_id: &DeviceId,
     ) -> Result<StorageData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
@@ -151,7 +151,7 @@ impl Fronius {
 
     pub fn get_ohm_pilot_realtime_data_device(
         &self,
-        device_id: DeviceId,
+        device_id: &DeviceId,
     ) -> Result<OhmPilotData, Error> {
         let device_id = u8::from(device_id).to_string();
         let response: CommonResponseBody<_> = self.make_request(
@@ -274,6 +274,12 @@ impl TryFrom<u8> for DeviceId {
         } else {
             Err(InvalidDeviceId(device_id))
         }
+    }
+}
+
+impl From<&DeviceId> for u8 {
+    fn from(device_id: &DeviceId) -> u8 {
+        device_id.0
     }
 }
 

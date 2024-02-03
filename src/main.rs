@@ -3,9 +3,9 @@ use std::net::IpAddr;
 use fronius::{DeviceId, Fronius};
 mod fronius;
 
-//inverted dev
 
-struct CommonInverterData {
+#[derive(Debug)]
+struct InverterData {
     ac_power: f64,
     ac_power_abs: f64,
     ac_current: f64,
@@ -16,9 +16,9 @@ struct CommonInverterData {
     total_energy: f64
 }
 
-fn get_common_inverted_data(fronius: Fronius, device_id: DeviceId) -> Result<CommonInverterData, Box<dyn std::error::Error>> {
-    let response = fronius.get_inverter_realtime_data_device::<fronius::CommonInverterData>(device_id)?;
-    let data = CommonInverterData {
+fn get_inverter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<InverterData, Box<dyn std::error::Error>> {
+    let response = fronius.get_inverter_realtime_data_device::<fronius::CommonInverterData>(device_id.to_owned())?;
+    let data = InverterData {
         ac_power: response.pac.value.expect("Value not found in response data"),
         ac_power_abs: response.sac.value.expect("Value not found in response data"),
         ac_current: response.iac.value.expect("Value not found in response data"),
@@ -31,7 +31,8 @@ fn get_common_inverted_data(fronius: Fronius, device_id: DeviceId) -> Result<Com
     Ok(data)
 }
 
-struct PhaseData {
+#[derive(Debug)]
+struct InverterPhaseData {
     ac_l1_current: f64,
     ac_l2_current: f64,
     ac_l3_current: f64,
@@ -40,9 +41,9 @@ struct PhaseData {
     dc_l3_voltage: f64,
 }
 
-fn get_inverter_phase_data(fronius: Fronius, device_id: DeviceId) -> Result<PhaseData, Box<dyn std::error::Error>> {
-    let response = fronius.get_inverter_realtime_data_device::<fronius::ThreePhaseInverterData>(device_id)?;
-    let data = PhaseData {
+fn get_inverter_phase_data(fronius: &Fronius, device_id: &DeviceId) -> Result<InverterPhaseData, Box<dyn std::error::Error>> {
+    let response = fronius.get_inverter_realtime_data_device::<fronius::ThreePhaseInverterData>(device_id.to_owned())?;
+    let data = InverterPhaseData {
         ac_l1_current: response.iac_l1.value.expect("Value not found in response data"),
         ac_l2_current: response.iac_l2.value.expect("Value not found in response data"),
         ac_l3_current: response.iac_l3.value.expect("Value not found in response data"),
@@ -53,6 +54,7 @@ fn get_inverter_phase_data(fronius: Fronius, device_id: DeviceId) -> Result<Phas
     Ok(data)
 }
 
+#[derive(Debug)]
 struct InverterInfo {
     device_type: i64,
     pv_power: i64,
@@ -64,8 +66,8 @@ struct InverterInfo {
     state: String
 }
 
-fn get_inverter_info(fronius: Fronius, device_id: DeviceId) -> Result<InverterInfo, Box<dyn std::error::Error>> {
-    let device_id = u8::from(device_id).to_string();
+fn get_inverter_info(fronius: &Fronius, device_id: &DeviceId) -> Result<InverterInfo, Box<dyn std::error::Error>> {
+    let device_id = u8::from(device_id.to_owned()).to_string();
     let res = fronius.get_inverter_info()?;
     let response = res[&device_id].as_ref().expect("Invalid device id");
     let data = InverterInfo {
@@ -81,6 +83,7 @@ fn get_inverter_info(fronius: Fronius, device_id: DeviceId) -> Result<InverterIn
     Ok(data)
 }
 
+#[derive(Debug)]
 struct MeterData {
     l1_current: f64,
     l2_current: f64,
@@ -99,7 +102,7 @@ struct MeterData {
     frequency_average: f64
 }
 
-fn get_meter_data(fronius: Fronius, device_id: DeviceId) -> Result<MeterData, Box<dyn std::error::Error>> {
+fn get_meter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<MeterData, Box<dyn std::error::Error>> {
     let response = fronius.get_meter_realtime_data_device(device_id)?;
     let data = MeterData {
         l1_current: response.current_ac_phase_1.expect("Value not found in response data"),
@@ -121,6 +124,7 @@ fn get_meter_data(fronius: Fronius, device_id: DeviceId) -> Result<MeterData, Bo
     Ok(data)
 }
 
+#[derive(Debug)]
 struct StorageData {
     enabled: bool,
     charge_percentage: f64,
@@ -130,7 +134,7 @@ struct StorageData {
     temperature_cell: f64
 }
 
-fn get_storage_data(fronius: Fronius, device_id: DeviceId) -> Result<StorageData, Box<dyn std::error::Error>> {
+fn get_storage_data(fronius: &Fronius, device_id: &DeviceId) -> Result<StorageData, Box<dyn std::error::Error>> {
     let response = fronius.get_storage_realtime_data_device(device_id)?;
     let data = StorageData {
         enabled: response.controller.enable > 0,
@@ -143,6 +147,7 @@ fn get_storage_data(fronius: Fronius, device_id: DeviceId) -> Result<StorageData
     Ok(data)
 }
 
+#[derive(Debug)]
 struct OhmPilotData {
     state: fronius::OhmPilotCodeOfState,
     error_code: Option<i64>,
@@ -150,7 +155,7 @@ struct OhmPilotData {
     temperature: f64
 }
 
-fn get_ohm_pilot_data(fronius: Fronius, device_id: DeviceId) -> Result<OhmPilotData, Box<dyn std::error::Error>> {
+fn get_ohm_pilot_data(fronius: &Fronius, device_id: &DeviceId) -> Result<OhmPilotData, Box<dyn std::error::Error>> {
     let response = fronius.get_ohm_pilot_realtime_data_device(device_id)?;
     let data = OhmPilotData {
         state: response.code_of_state,
@@ -161,6 +166,7 @@ fn get_ohm_pilot_data(fronius: Fronius, device_id: DeviceId) -> Result<OhmPilotD
     Ok(data)
 }
 
+#[derive(Debug)]
 struct PowerFlowData {
     akku: f64,
     grid: f64,
@@ -170,7 +176,7 @@ struct PowerFlowData {
     relative_self_consumption: f64
 }
 
-fn get_power_flow(fronius: Fronius) -> Result<PowerFlowData, Box<dyn std::error::Error>> {
+fn get_power_flow_data(fronius: &Fronius) -> Result<PowerFlowData, Box<dyn std::error::Error>> {
     let response = fronius.get_power_flow_realtime_data()?;
     let data = PowerFlowData {
         akku: response.site.p_akku.expect("Value not found in response data"),
@@ -183,10 +189,32 @@ fn get_power_flow(fronius: Fronius) -> Result<PowerFlowData, Box<dyn std::error:
     Ok(data)
 }
 
+fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
+    let interver_id = DeviceId::try_from(1).unwrap();
+    let meter_id = DeviceId::try_from(0).unwrap();
+    let storage_id = DeviceId::try_from(0).unwrap();
+    let ohm_pilot_id = DeviceId::try_from(0).unwrap();
+    let inverter_data = get_inverter_data(fronius, &interver_id)?;
+    let inverter_phase_data = get_inverter_phase_data(fronius, &interver_id)?;
+    let inverter_info = get_inverter_info(fronius, &interver_id)?;
+    let meter_data = get_meter_data(fronius, &meter_id)?;
+    let storage_data = get_storage_data(fronius, &storage_id)?;
+    let ohm_pilot_data = get_ohm_pilot_data(fronius, &ohm_pilot_id)?;
+    let power_flow_data = get_power_flow_data(fronius)?;
+    println!("{:#?}", inverter_data);
+    println!("{:#?}", inverter_phase_data);
+    println!("{:#?}", inverter_info);
+    println!("{:#?}", meter_data);
+    println!("{:#?}", storage_data);
+    println!("{:#?}", ohm_pilot_data);
+    println!("{:#?}", power_flow_data);
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 69, 0, 50));
     let fronius = Fronius::connect(ip)?;
-    println!("{:#?}", fronius.get_power_flow_realtime_data()?);
-    //println!("{:#?}", fronious::get_inverter_realtime_data(ip, fronious::Scope::System)?);
+    fetch_data(&fronius)?;
+    //println!("{:#?}", get_common_inverted_data(fronius, DeviceId::try_from(1).unwrap())?);
     Ok(())
 }
