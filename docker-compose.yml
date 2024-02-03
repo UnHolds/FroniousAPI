@@ -2,6 +2,7 @@ services:
   fronius:
     build:
       dockerfile: Dockerfile
+    image: unhold/fronius-rust
     environment:
       - FRONIUS_IP=10.69.0.50
       - INFLUX_DB_URL=http://10.69.0.5:8086
