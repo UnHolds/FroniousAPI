@@ -17,6 +17,7 @@ https://hub.docker.com/r/unhold/fronius-rust
 
 If you want to use this image you just need to create the following
 `docker-compose.yml` file and change the enviroment variables.
+(In this case you **don't** need to download or clone this repository)
 
 ```yml
 services:
@@ -95,3 +96,14 @@ INFLUX_DB_BUCKET=<bucket>
         fronius.get_inverter_realtime_data_system()?
     );
 ```
+
+## Contributing
+
+If you want to contribute you can do so in the following ways:
+
+- Open issues for improvement ideas / bug reports
+- Create pull request to fix open issues.
+
+## Authors
+
+- UnHold
