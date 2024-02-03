@@ -294,7 +294,7 @@ fn get_power_flow_data(fronius: &Fronius) -> Result<PowerFlowData, Box<dyn std::
     Ok(data)
 }
 
-async fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
+fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
     let interver_id = DeviceId::try_from(1).unwrap();
     let meter_id = DeviceId::try_from(0).unwrap();
     let storage_id = DeviceId::try_from(0).unwrap();
@@ -307,16 +307,52 @@ async fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>>
     let ohm_pilot_data = get_ohm_pilot_data(fronius, &ohm_pilot_id)?;
     let power_flow_data = get_power_flow_data(fronius)?;
 
-    let client = Client::new("http://10.69.0.5:8086", "Local", "PbP4kAlnZQFLmyp1H7eHOxGCTf2CJ_qVeYWd6z7OYblyL2UZLCZHFjtGRnC2-Y51BZchLEhxUeY25W8m1q1VHw==");
-    client.write( "photovoltaics", futures::stream::iter(vec![inverter_data])).await?;
+    let client = Client::new("http://10.69.0.5:8086", "Local", "7xh2Mi8NAQANT7erOTxkjKlH7tEUlFYmOq9sy4bl-JUsG0_pwu85CzUJk-77fMKVKN3hwXDoY6HPhw3n9Lga6g==");
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_data])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_phase_data])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![inverter_info])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![meter_data])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![storage_data])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![ohm_pilot_data])))?;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write( "photovoltaics", futures::stream::iter(vec![power_flow_data])))?;
     Ok(())
 }
 
-#[tokio::main()]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 69, 0, 50));
     let fronius = Fronius::connect(ip)?;
-    fetch_data(&fronius).await?;
-    //println!("{:#?}", get_common_inverted_data(fronius, DeviceId::try_from(1).unwrap())?);
-    Ok(())
+    loop {
+        fetch_data(&fronius)?;
+        std::thread::sleep(std::time::Duration::from_secs(15));
+        let now = Utc::now();
+        println!("Reporting data at: {now}")
+    }
 }
