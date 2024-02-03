@@ -14,3 +14,10 @@ time = { version = "0.3.32", features = ["serde", "serde-well-known"]}
 serde_json = "1.0.113"
 serde_repr = "0.1.18"
 thiserror = "1.0.56"
+influxdb2 = "0.5.0"
+influxdb2-structmap = "0.2"
+influxdb2-derive = "0.1.1"
+num-traits = "0.2"
+chrono = "0.4.33"
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }

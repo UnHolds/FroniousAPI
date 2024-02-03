@@ -403,6 +403,23 @@ pub enum InverterStatusCode {
     Unknown = 255,
 }
 
+impl std::fmt::Display for InverterStatusCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            InverterStatusCode::Startup => write!(f, "Startup"),
+            InverterStatusCode::Running => write!(f, "Running"),
+            InverterStatusCode::Standby => write!(f, "Standby"),
+            InverterStatusCode::Bootloading => write!(f, "Bootloading"),
+            InverterStatusCode::Error => write!(f, "Error"),
+            InverterStatusCode::Idle => write!(f, "Idle"),
+            InverterStatusCode::Ready => write!(f, "Ready"),
+            InverterStatusCode::Sleeping => write!(f, "Sleeping"),
+            InverterStatusCode::Unknown => write!(f, "Unknown"),
+        }
+    }
+}
+
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DeviceType {
     Inverter,
@@ -626,6 +643,19 @@ pub enum OhmPilotCodeOfState {
     CriticalFault = 3,
     Fault = 4,
     BoostMode = 5,
+}
+
+impl std::fmt::Display for OhmPilotCodeOfState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            OhmPilotCodeOfState::UpAndRunning => write!(f, "Up and Running"),
+            OhmPilotCodeOfState::KeepMinimumTemperature => write!(f, "Keeping minimum Temperature"),
+            OhmPilotCodeOfState::LegionellaProtection => write!(f, "Legionella Protection"),
+            OhmPilotCodeOfState::CriticalFault => write!(f, "Critical Fault"),
+            OhmPilotCodeOfState::Fault => write!(f, "Fault"),
+            OhmPilotCodeOfState::BoostMode => write!(f, "Boost Mode"),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
