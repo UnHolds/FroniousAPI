@@ -161,7 +161,7 @@ impl Fronius {
         Ok(response.data)
     }
 
-    pub fn get_power_flow_realtime_data(&self) -> Result<PowerFlow, Error> {
+    pub fn get_power_flow_realtime_data(&self) -> Result<PowerFlowData, Error> {
         let response: CommonResponseBody<_> =
             self.make_request("GetPowerFlowRealtimeData.fcgi", [] as [(&str, &str); 0])?;
         Ok(response.data)
@@ -291,15 +291,15 @@ pub trait DataCollection: DeserializeOwned {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct UnitAndValues<T> {
-    unit: String,
-    values: HashMap<String, Option<T>>,
+    pub unit: String,
+    pub values: HashMap<String, Option<T>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct UnitAndValue<T> {
-    unit: String,
-    value: Option<T>,
+    pub unit: String,
+    pub value: Option<T>,
 }
 
 pub type CumulationInverterData = inner::CumulationInverterDataProto<inner::SingleValue>;
@@ -309,22 +309,22 @@ pub type CumulationInverterDataSystem = inner::CumulationInverterDataProto<inner
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct CommonInverterData {
-    pac: UnitAndValue<f64>,
-    sac: UnitAndValue<f64>,
-    iac: UnitAndValue<f64>,
-    uac: UnitAndValue<f64>,
-    fac: UnitAndValue<f64>,
-    idc: UnitAndValue<f64>,
-    idc_2: UnitAndValue<f64>,
-    idc_3: UnitAndValue<f64>,
-    idc_4: UnitAndValue<f64>,
-    udc: UnitAndValue<f64>,
-    udc_2: UnitAndValue<f64>,
-    udc_3: UnitAndValue<f64>,
-    udc_4: UnitAndValue<f64>,
-    day_energy: UnitAndValue<f64>,
-    year_energy: UnitAndValue<f64>,
-    total_energy: UnitAndValue<f64>,
+    pub sac: UnitAndValue<f64>,
+    pub pac: UnitAndValue<f64>,
+    pub iac: UnitAndValue<f64>,
+    pub uac: UnitAndValue<f64>,
+    pub fac: UnitAndValue<f64>,
+    pub idc: UnitAndValue<f64>,
+    pub idc_2: UnitAndValue<f64>,
+    pub idc_3: UnitAndValue<f64>,
+    pub idc_4: UnitAndValue<f64>,
+    pub udc: UnitAndValue<f64>,
+    pub udc_2: UnitAndValue<f64>,
+    pub udc_3: UnitAndValue<f64>,
+    pub udc_4: UnitAndValue<f64>,
+    pub day_energy: UnitAndValue<f64>,
+    pub year_energy: UnitAndValue<f64>,
+    pub total_energy: UnitAndValue<f64>,
     pub device_status: DeviceStatus,
 }
 
@@ -333,18 +333,19 @@ pub type ThreePInverterData = ThreePhaseInverterData;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct ThreePhaseInverterData {
-    iac_l1: UnitAndValue<f64>,
-    iac_l2: UnitAndValue<f64>,
-    iac_l3: UnitAndValue<f64>,
-    uac_l1: UnitAndValue<f64>,
-    uac_l2: UnitAndValue<f64>,
-    uac_l3: UnitAndValue<f64>,
-    t_ambient: Option<UnitAndValue<f64>>,
-    rotation_speed_fan_fl: Option<UnitAndValue<f64>>,
-    rotation_speed_fan_fr: Option<UnitAndValue<f64>>,
-    rotation_speed_fan_bl: Option<UnitAndValue<f64>>,
-    rotation_speed_fan_br: Option<UnitAndValue<f64>>,
+    pub iac_l1: UnitAndValue<f64>,
+    pub iac_l2: UnitAndValue<f64>,
+    pub iac_l3: UnitAndValue<f64>,
+    pub uac_l1: UnitAndValue<f64>,
+    pub uac_l2: UnitAndValue<f64>,
+    pub uac_l3: UnitAndValue<f64>,
+    pub t_ambient: Option<UnitAndValue<f64>>,
+    pub rotation_speed_fan_fl: Option<UnitAndValue<f64>>,
+    pub rotation_speed_fan_fr: Option<UnitAndValue<f64>>,
+    pub rotation_speed_fan_bl: Option<UnitAndValue<f64>>,
+    pub rotation_speed_fan_br: Option<UnitAndValue<f64>>,
 }
+
 
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
@@ -370,16 +371,16 @@ pub type InverterInfos = HashMap<String, Option<InverterInfo>>;
 #[serde(rename_all = "PascalCase")]
 pub struct InverterInfo {
     #[serde(rename = "DT")]
-    dt: i64,
+    pub dt: i64,
     #[serde(rename = "PVPower")]
-    pv_power: i64,
-    custom_name: String,
-    show: u64,
+    pub pv_power: i64,
+    pub custom_name: String,
+    pub show: u64,
     #[serde(rename = "UniqueID")]
-    unique_id: String,
-    error_code: i64,
-    status_code: InverterStatusCode,
-    inverter_state: String,
+    pub unique_id: String,
+    pub error_code: i64,
+    pub status_code: InverterStatusCode,
+    pub inverter_state: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
@@ -422,97 +423,97 @@ pub type MeterDataSystem = HashMap<String, MeterData>;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct MeterData {
-    details: DeviceDetails,
+    pub details: DeviceDetails,
     #[serde(rename = "Current_AC_Phase_1")]
-    current_ac_phase_1: Option<f64>,
+    pub current_ac_phase_1: Option<f64>,
     #[serde(rename = "Current_AC_Phase_2")]
-    current_ac_phase_2: Option<f64>,
+    pub current_ac_phase_2: Option<f64>,
     #[serde(rename = "Current_AC_Phase_3")]
-    current_ac_phase_3: Option<f64>,
+    pub current_ac_phase_3: Option<f64>,
     #[serde(rename = "Current_AC_Sum")]
-    current_ac_sum: Option<f64>,
-    enable: u8,
+    pub current_ac_sum: Option<f64>,
+    pub enable: u8,
     #[serde(rename = "EnergyReactive_VArAC_Phase_1_Consumed")]
-    energy_reactive_va_r_ac_phase_1_consumed: Option<f64>,
+    pub energy_reactive_va_r_ac_phase_1_consumed: Option<f64>,
     #[serde(rename = "EnergyReactive_VArAC_Phase_1_Produced")]
-    energy_reactive_va_r_ac_phase_1_produced: Option<f64>,
+    pub energy_reactive_va_r_ac_phase_1_produced: Option<f64>,
     #[serde(rename = "EnergyReactive_VArAC_Sum_Consumed")]
-    energy_reactive_va_r_ac_sum_consumed: Option<f64>,
+    pub energy_reactive_va_r_ac_sum_consumed: Option<f64>,
     #[serde(rename = "EnergyReactive_VArAC_Sum_Produced")]
-    energy_reactive_va_r_ac_sum_produced: Option<f64>,
+    pub energy_reactive_va_r_ac_sum_produced: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Minus_Absolute")]
-    energy_real_wac_minus_absolute: Option<f64>,
+    pub energy_real_wac_minus_absolute: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_1_Consumed")]
-    energy_real_wac_phase_1_consumed: Option<f64>,
+    pub energy_real_wac_phase_1_consumed: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_1_Produced")]
-    energy_real_wac_phase_1_produced: Option<f64>,
+    pub energy_real_wac_phase_1_produced: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_2_Consumed")]
-    energy_real_wac_phase_2_consumed: Option<f64>,
+    pub energy_real_wac_phase_2_consumed: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_2_Produced")]
-    energy_real_wac_phase_2_produced: Option<f64>,
+    pub energy_real_wac_phase_2_produced: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_3_Consumed")]
-    energy_real_wac_phase_3_consumed: Option<f64>,
+    pub energy_real_wac_phase_3_consumed: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Phase_3_Produced")]
-    energy_real_wac_phase_3_produced: Option<f64>,
+    pub energy_real_wac_phase_3_produced: Option<f64>,
     #[serde(rename = "EnergyReal_WAC_Plus_Absolute")]
-    energy_real_wac_plus_absolute: f64,
+    pub energy_real_wac_plus_absolute: f64,
     #[serde(rename = "EnergyReal_WAC_Sum_Consumed")]
-    energy_real_wac_sum_consumed: f64,
+    pub energy_real_wac_sum_consumed: f64,
     #[serde(rename = "EnergyReal_WAC_Sum_Produced")]
-    energy_real_wac_sum_produced: f64,
+    pub energy_real_wac_sum_produced: f64,
     #[serde(rename = "Frequency_Phase_Average")]
-    frequency_phase_average: f64,
+    pub frequency_phase_average: f64,
     #[serde(rename = "Meter_Location_Current")]
-    meter_location_current: f64,
+    pub meter_location_current: f64,
     #[serde(rename = "PowerApparent_S_Phase_1")]
-    power_apparent_s_phase_1: Option<f64>,
+    pub power_apparent_s_phase_1: Option<f64>,
     #[serde(rename = "PowerApparent_S_Phase_2")]
-    power_apparent_s_phase_2: Option<f64>,
+    pub power_apparent_s_phase_2: Option<f64>,
     #[serde(rename = "PowerApparent_S_Phase_3")]
-    power_apparent_s_phase_3: Option<f64>,
+    pub power_apparent_s_phase_3: Option<f64>,
     #[serde(rename = "PowerApparent_S_Sum")]
-    power_apparent_s_sum: f64,
+    pub power_apparent_s_sum: f64,
     #[serde(rename = "PowerFactor_Phase_1")]
-    power_factor_phase_1: Option<f64>,
+    pub power_factor_phase_1: Option<f64>,
     #[serde(rename = "PowerFactor_Phase_2")]
-    power_factor_phase_2: Option<f64>,
+    pub power_factor_phase_2: Option<f64>,
     #[serde(rename = "PowerFactor_Phase_3")]
-    power_factor_phase_3: Option<f64>,
+    pub power_factor_phase_3: Option<f64>,
     #[serde(rename = "PowerFactor_Sum")]
-    power_factor_sum: f64,
+    pub power_factor_sum: f64,
     #[serde(rename = "PowerReactive_Q_Phase_1")]
-    power_reactive_q_phase_1: Option<f64>,
+    pub power_reactive_q_phase_1: Option<f64>,
     #[serde(rename = "PowerReactive_Q_Phase_2")]
-    power_reactive_q_phase_2: Option<f64>,
+    pub power_reactive_q_phase_2: Option<f64>,
     #[serde(rename = "PowerReactive_Q_Phase_3")]
-    power_reactive_q_phase_3: Option<f64>,
+    pub power_reactive_q_phase_3: Option<f64>,
     #[serde(rename = "PowerReactive_Q_Sum")]
-    power_reactive_q_sum: f64,
+    pub power_reactive_q_sum: f64,
     #[serde(rename = "PowerReal_P_Phase_1")]
-    power_real_p_phase_1: Option<f64>,
+    pub power_real_p_phase_1: Option<f64>,
     #[serde(rename = "PowerReal_P_Phase_2")]
-    power_real_p_phase_2: Option<f64>,
+    pub power_real_p_phase_2: Option<f64>,
     #[serde(rename = "PowerReal_P_Phase_3")]
-    power_real_p_phase_3: Option<f64>,
+    pub power_real_p_phase_3: Option<f64>,
     #[serde(rename = "PowerReal_P_Sum")]
-    power_real_p_sum: f64,
+    pub power_real_p_sum: f64,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: OffsetDateTime,
-    visible: u8,
+    pub time_stamp: OffsetDateTime,
+    pub visible: u8,
     #[serde(rename = "Voltage_AC_PhaseToPhase_12")]
-    voltage_ac_phase_to_phase_12: Option<f64>,
+    pub voltage_ac_phase_to_phase_12: Option<f64>,
     #[serde(rename = "Voltage_AC_PhaseToPhase_23")]
-    voltage_ac_phase_to_phase_23: Option<f64>,
+    pub voltage_ac_phase_to_phase_23: Option<f64>,
     #[serde(rename = "Voltage_AC_PhaseToPhase_31")]
-    voltage_ac_phase_to_phase_31: Option<f64>,
+    pub voltage_ac_phase_to_phase_31: Option<f64>,
     #[serde(rename = "Voltage_AC_Phase_1")]
-    voltage_ac_phase_1: Option<f64>,
+    pub voltage_ac_phase_1: Option<f64>,
     #[serde(rename = "Voltage_AC_Phase_2")]
-    voltage_ac_phase_2: Option<f64>,
+    pub voltage_ac_phase_2: Option<f64>,
     #[serde(rename = "Voltage_AC_Phase_3")]
-    voltage_ac_phase_3: Option<f64>,
+    pub voltage_ac_phase_3: Option<f64>,
     #[serde(rename = "Voltage_AC_Phase_Average")]
-    voltage_ac_phase_average: Option<f64>,
+    pub voltage_ac_phase_average: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -528,70 +529,70 @@ pub type StorageDataSystem = HashMap<String, StorageData>;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StorageData {
-    controller: StorageController,
-    modules: Vec<StorageModule>,
+    pub controller: StorageController,
+    pub modules: Vec<StorageModule>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StorageController {
-    details: DeviceDetails,
+    pub details: DeviceDetails,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: OffsetDateTime,
-    enable: u8,
+    pub time_stamp: OffsetDateTime,
+    pub enable: u8,
     #[serde(rename = "StateOfCharge_Relative")]
-    state_of_charge_relative: f64,
+    pub state_of_charge_relative: f64,
     #[serde(rename = "Capacity_Maximum")]
-    capacity_maximum: f64,
+    pub capacity_maximum: f64,
     #[serde(rename = "Current_DC")]
-    current_dc: f64,
+    pub current_dc: f64,
     #[serde(rename = "Voltage_DC")]
-    voltage_dc: f64,
+    pub voltage_dc: f64,
     #[serde(rename = "Temperature_Cell")]
-    temperature_cell: f64,
+    pub temperature_cell: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StorageModule {
-    details: Option<DeviceDetails>,
+    pub details: Option<DeviceDetails>,
     #[serde(rename = "Capacity_Maximum")]
-    capacity_maximum: Option<f64>,
+    pub capacity_maximum: Option<f64>,
     #[serde(rename = "Current_DC")]
-    current_dc: Option<f64>,
+    pub current_dc: Option<f64>,
     #[serde(rename = "CycleCount_BatteryCell")]
-    cycle_count_battery_cell: Option<f64>,
+    pub cycle_count_battery_cell: Option<f64>,
     #[serde(rename = "DesignedCapacity")]
-    designed_capacity: Option<f64>,
-    enable: Option<u8>,
+    pub designed_capacity: Option<f64>,
+    pub enable: Option<u8>,
     #[serde(rename = "StateOfCharge_Relative")]
-    state_of_charge_relative: Option<f64>,
+    pub state_of_charge_relative: Option<f64>,
     #[serde(rename = "Status_BatteryCell")]
-    status_battery_cell: Option<u64>,
+    pub status_battery_cell: Option<u64>,
     #[serde(rename = "Temperature_Cell")]
-    temperature_cell: Option<f64>,
+    pub temperature_cell: Option<f64>,
     #[serde(rename = "Temperature_Cell_Maximum")]
-    temperature_cell_maximum: Option<f64>,
+    pub temperature_cell_maximum: Option<f64>,
     #[serde(rename = "Temperature_Cell_Minimum")]
-    temperature_cell_minimum: Option<f64>,
+    pub temperature_cell_minimum: Option<f64>,
     #[serde(with = "time::serde::timestamp")]
-    time_stamp: OffsetDateTime,
+    pub time_stamp: OffsetDateTime,
     #[serde(rename = "Voltage_DC")]
-    voltage_dc: Option<f64>,
+    pub voltage_dc: Option<f64>,
     #[serde(rename = "Voltage_DC_Maximum_Cell")]
-    voltage_dc_maximum_cell: Option<f64>,
+    pub voltage_dc_maximum_cell: Option<f64>,
     #[serde(rename = "Voltage_DC_Minimum_Cell")]
-    voltage_dc_minimum_cell: Option<f64>,
+    pub voltage_dc_minimum_cell: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct OhmPilotDetails {
-    serial: String,
-    model: String,
-    manufacturer: String,
-    software: String,
-    hardware: String,
+    pub serial: String,
+    pub model: String,
+    pub manufacturer: String,
+    pub software: String,
+    pub hardware: String,
 }
 
 pub type OhmPilotDataSystem = HashMap<String, OhmPilotData>;
@@ -599,15 +600,15 @@ pub type OhmPilotDataSystem = HashMap<String, OhmPilotData>;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct OhmPilotData {
-    details: OhmPilotDetails,
+    pub details: OhmPilotDetails,
     #[serde(rename = "EnergyReal_WAC_Sum_Consumed")]
-    energy_real_wac_sum_consumed: f64,
-    code_of_state: OhmPilotCodeOfState,
-    code_of_error: Option<u64>,
+    pub energy_real_wac_sum_consumed: f64,
+    pub code_of_state: OhmPilotCodeOfState,
+    pub code_of_error: Option<i64>,
     #[serde(rename = "PowerReal_PAC_Sum")]
-    power_real_pac_sum: f64,
+    pub power_real_pac_sum: f64,
     #[serde(rename = "Temperature_Channel_1")]
-    temperature_channel_1: f64,
+    pub temperature_channel_1: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
@@ -623,76 +624,76 @@ pub enum OhmPilotCodeOfState {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct PowerFlow {
-    version: String,
-    site: PowerFlowSite,
-    inverters: HashMap<String, PowerFlowInverter>,
-    smartloads: HashMap<String, HashMap<String, PowerFlowOhmPilots>>,
-    secondary_meters: Option<HashMap<String, PowerFlowSecondaryMeters>>,
+pub struct PowerFlowData {
+    pub version: String,
+    pub site: PowerFlowSite,
+    pub inverters: HashMap<String, PowerFlowInverter>,
+    pub smartloads: HashMap<String, HashMap<String, PowerFlowOhmPilots>>,
+    pub secondary_meters: Option<HashMap<String, PowerFlowSecondaryMeters>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PowerFlowSite {
-    mode: String,
-    battery_standby: Option<bool>,
-    backup_mode: Option<bool>,
+    pub mode: String,
+    pub battery_standby: Option<bool>,
+    pub backup_mode: Option<bool>,
     #[serde(rename = "P_Grid")]
-    p_grid: Option<f64>,
+    pub p_grid: Option<f64>,
     #[serde(rename = "P_Load")]
-    p_load: Option<f64>,
+    pub p_load: Option<f64>,
     #[serde(rename = "P_Akku")]
-    p_akku: Option<f64>,
+    pub p_akku: Option<f64>,
     #[serde(rename = "P_PV")]
-    p_pv: f64,
+    pub p_pv: f64,
     #[serde(rename = "rel_SelfConsumption")]
-    rel_self_consumption: Option<f64>,
+    pub rel_self_consumption: Option<f64>,
     #[serde(rename = "rel_Autonomy")]
-    rel_autonomy: Option<f64>,
+    pub rel_autonomy: Option<f64>,
     #[serde(rename = "Meter_Location")]
-    meter_location: Option<String>,
+    pub meter_location: Option<String>,
     #[serde(rename = "E_Day")]
-    e_day: Option<f64>,
+    pub e_day: Option<f64>,
     #[serde(rename = "E_Year")]
-    e_year: Option<f64>,
+    pub e_year: Option<f64>,
     #[serde(rename = "E_Total")]
-    e_total: Option<f64>,
+    pub e_total: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PowerFlowInverter {
     #[serde(rename = "DT")]
-    dt: i64,
-    p: f64,
+    pub dt: i64,
+    pub p: f64,
     #[serde(rename = "SOC")]
-    soc: Option<f64>,
+    pub soc: Option<f64>,
     #[serde(rename = "CID")]
-    cid: Option<u32>,
+    pub cid: Option<u32>,
     #[serde(rename = "Battery_Mode")]
-    battery_mode: Option<String>,
+    pub battery_mode: Option<String>,
     #[serde(rename = "E_Day")]
-    e_day: Option<f64>,
+    pub e_day: Option<f64>,
     #[serde(rename = "E_Year")]
-    e_year: Option<f64>,
+    pub e_year: Option<f64>,
     #[serde(rename = "E_Total")]
-    e_total: Option<f64>,
+    pub e_total: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PowerFlowOhmPilots {
     #[serde(rename = "P_AC_Total")]
-    p_ac_total: f64,
-    state: String,
-    temperature: f64,
+    pub p_ac_total: f64,
+    pub state: String,
+    pub temperature: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PowerFlowSecondaryMeters {
-    p: f64,
-    m_loc: f64,
-    label: String,
-    category: String,
+    pub p: f64,
+    pub m_loc: f64,
+    pub label: String,
+    pub category: String,
 }
