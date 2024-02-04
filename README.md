@@ -59,7 +59,7 @@ docker compose up
 When the project is started you will perdiodically (every 15sec) see log messages
 that indicate that data was reported.
 
-### Build & Run
+### Local Build & Run
 
 If you just want to build and run it, then make sure that the following
 enviroment variables are set:
@@ -96,6 +96,135 @@ INFLUX_DB_BUCKET=<bucket>
         fronius.get_inverter_realtime_data_system()?
     );
 ```
+
+## InfluxDB data
+
+The following datasets are transmitted every 15sec:
+
+### InverterData
+
+Endpoint: `/solar_api/v1/GetInverterRealtimeData.cgi`<br/>
+DataCollection: `CommonInverterData` <br/>
+InfluxDB Measurement: `inverter`
+
+| Name         | Value (Fronius) | Type      |
+| ------------ | --------------- | --------- |
+| device       | "Inverter"      | Tag       |
+| ac_power     | PAC             | Value     |
+| ac_power_abs | SAC             | Value     |
+| ac_current   | IAC             | Value     |
+| ac_voltage   | UAC             | Value     |
+| ac_frequency | FAC             | Value     |
+| dc_current   | IDC             | Value     |
+| dc_voltage   | UDC             | Value     |
+| total_energy | TOTAL_ENERGY    | Value     |
+| time         | "current_time"  | Timestamp |
+
+### InverterPhaseData
+
+Endpoint: `/solar_api/v1/GetInverterRealtimeData.cgi`<br/>
+DataCollection: `3PInverterData` <br/>
+InfluxDB Measurement: `inverter_phase`
+
+| Name          | Value (Fronius) | Type      |
+| ------------- | --------------- | --------- |
+| device        | "Inverter"      | Tag       |
+| ac_l1_current | IAC_L1          | Value     |
+| ac_l2_current | IAC_L2          | Value     |
+| ac_l3_current | IAC_L3          | Value     |
+| dc_l1_voltage | UAC_L1          | Value     |
+| dc_l2_voltage | UAC_L2          | Value     |
+| dc_l3_voltage | UAC_L3          | Value     |
+| time          | "current_time"  | Timestamp |
+
+### InverterInfo
+
+Endpoint: `/solar_api/v1/GetInverterInfo.cgi` <br/>
+InfluxDB Measurement: `inverter_info`
+
+| Name          | Value (Fronius) | Type      |
+| ------------- | --------------- | --------- |
+| device        | "Inverter"      | Tag       |
+| device_type   | DT              | Value     |
+| pv_power      | PVPower         | Value     |
+| name          | CustomName      | Value     |
+| is_visualized | Show            | Value     |
+| id            | UniqueID        | Value     |
+| error_code    | error_code      | Value     |
+| status_code   | status_code     | Value     |
+| state         | inverter_state  | Value     |
+| time          | "current_time"  | Timestamp |
+
+### MeterData
+
+Endpoint: `/solar_api/v1/GetMeterRealtimeData.cgi` <br/>
+InfluxDB Measurement: `meter`
+
+| Name              | Value (Fronius)            | Type      |
+| ----------------- | -------------------------- | --------- |
+| device            | "Meter"                    | Tag       |
+| l1_current        | Current_AC_Phase_1         | Value     |
+| l2_current        | Current_AC_Phase_2         | Value     |
+| l3_current        | Current_AC_Phase_3         | Value     |
+| current           | Current_AC_Sum             | Value     |
+| l1_voltage        | Voltage_AC_Phase_1         | Value     |
+| l2_voltage        | Voltage_AC_Phase_2         | Value     |
+| l3_voltage        | Voltage_AC_Phase_2         | Value     |
+| l12_voltage       | Voltage_AC_PhaseToPhase_12 | Value     |
+| l23_voltage       | Voltage_AC_PhaseToPhase_23 | Value     |
+| l31_voltage       | Voltage_AC_PhaseToPhase_31 | Value     |
+| l1_power          | PowerReal_P_Phase_1        | Value     |
+| l2_power          | PowerReal_P_Phase_2        | Value     |
+| l3_power          | PowerReal_P_Phase_3        | Value     |
+| power             | PowerReal_P_Sum            | Value     |
+| frequency_average | Frequency_Phase_Average    | Value     |
+| time              | "current_time"             | Timestamp |
+
+### StorageData
+
+Endpoint: `/solar_api/v1/GetStorageRealtimeData.cgi` <br/>
+InfluxDB Measurement: `storage`
+
+| Name              | Value (Fronius)        | Type      |
+| ----------------- | ---------------------- | --------- |
+| device            | "Storage"              | Tag       |
+| enabled:          | Enable                 | Value     |
+| charge_percentage | StateOfCharge_Relative | Value     |
+| capacity          | Capacity_Maximum       | Value     |
+| dc_current        | Current_DC             | Value     |
+| dc_voltage        | Voltage_DC             | Value     |
+| temperature_cell  | Temperature_Cell       | Value     |
+| time              | "current_time"         | Timestamp |
+
+### OhmPilotData
+
+Endpoint: `/solar_api/v1/GetOhmPilotRealtimeData.cgi`<br/>
+InfluxDB Measurement: `ohm_pilot`
+
+| Name        | Value (Fronius)       | Type      |
+| ----------- | --------------------- | --------- |
+| device      | "OhmPilot"            | Tag       |
+| state       | CodeOfState           | Value     |
+| error_code  | CodeOfError           | Value     |
+| power       | PowerReal_PAC_Sum     | Value     |
+| temperature | Temperature_Channel_1 | Value     |
+| time        | "current_time"        | Timestamp |
+
+### PowerFlowData
+
+Endpoint: `/solar_api/v1/GetPowerFlowRealtimeData.fcgi` <br/>
+InfluxDB Measurement: `power_flow`
+
+| Name                      | Value (Fronius)     | Type      |
+| ------------------------- | ------------------- | --------- |
+| device                    | "Unknown"           | Tag       |
+| akku                      | P_Akku              | Value     |
+| grid                      | P_Grid              | Value     |
+| load                      | P_Load              | Value     |
+| photovoltaik              | P_PV                | Value     |
+| relative_autonomy         | rel_Autonomy        | Value     |
+| relative_self_consumption | rel_SelfConsumption | Value     |
+| time                      | "current_time"      | Timestamp |
 
 ## Contributing
 
