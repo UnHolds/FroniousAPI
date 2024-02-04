@@ -1,7 +1,7 @@
-use std::{future, net::IpAddr, str::FromStr};
+use std::{net::IpAddr, str::FromStr};
 
 use fronius::{DeviceId, Fronius};
-use influxdb2::{Client, FromDataPoint};
+use influxdb2::Client;
 use influxdb2_derive::WriteDataPoint;
 use chrono::prelude::*;
 mod fronius;
@@ -294,56 +294,76 @@ fn get_power_flow_data(fronius: &Fronius) -> Result<PowerFlowData, Box<dyn std::
     Ok(data)
 }
 
+fn send_to_influx(client: &Client, bucket: &str,  data: impl futures::Stream<Item = impl influxdb2::models::WriteDataPoint> + Send + Sync + 'static){
+    let res = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(client.write(bucket, data));
+
+    if let Err(error) = res {
+        println!("Error during influxdb write occured: {:?}", error);
+    }
+}
+
 fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
     let interver_id = DeviceId::try_from(1).unwrap();
     let meter_id = DeviceId::try_from(0).unwrap();
     let storage_id = DeviceId::try_from(0).unwrap();
     let ohm_pilot_id = DeviceId::try_from(0).unwrap();
-    let inverter_data = get_inverter_data(fronius, &interver_id)?;
-    let inverter_phase_data = get_inverter_phase_data(fronius, &interver_id)?;
-    let inverter_info = get_inverter_info(fronius, &interver_id)?;
-    let meter_data = get_meter_data(fronius, &meter_id)?;
-    let storage_data = get_storage_data(fronius, &storage_id)?;
-    let ohm_pilot_data = get_ohm_pilot_data(fronius, &ohm_pilot_id)?;
-    let power_flow_data = get_power_flow_data(fronius)?;
+    let inverter_data = get_inverter_data(fronius, &interver_id);
+    let inverter_phase_data = get_inverter_phase_data(fronius, &interver_id);
+    let inverter_info = get_inverter_info(fronius, &interver_id);
+    let meter_data = get_meter_data(fronius, &meter_id);
+    let storage_data = get_storage_data(fronius, &storage_id);
+    let ohm_pilot_data = get_ohm_pilot_data(fronius, &ohm_pilot_id);
+    let power_flow_data = get_power_flow_data(fronius);
 
     let client = Client::new(std::env::var("INFLUX_DB_URL")?, std::env::var("INFLUX_DB_ORG")?, std::env::var("INFLUX_DB_TOKEN")?);
     let bucket = std::env::var("INFLUX_DB_BUCKET")?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_data])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_phase_data])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![inverter_info])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![meter_data])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![storage_data])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![ohm_pilot_data])))?;
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(client.write(&bucket, futures::stream::iter(vec![power_flow_data])))?;
+
+    if let Ok(val) = inverter_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = inverter_data {
+        println!("Error during fetch of inverter_data occured: {:?}", error);
+    }
+
+    if let Ok(val) = inverter_phase_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = inverter_phase_data {
+        println!("Error during fetch of inverter_phase_data occured: {:?}", error);
+    }
+
+    if let Ok(val) = inverter_info {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = inverter_info {
+        println!("Error during fetch of inverter_info occured: {:?}", error);
+    }
+
+    if let Ok(val) = meter_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = meter_data {
+        println!("Error during fetch of meter_data occured: {:?}", error);
+    }
+
+    if let Ok(val) = storage_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = storage_data {
+        println!("Error during fetch of storage_data occured: {:?}", error);
+    }
+
+    if let Ok(val) = ohm_pilot_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = ohm_pilot_data {
+        println!("Error during fetch of ohm_pilot_data occured: {:?}", error);
+    }
+
+    if let Ok(val) = power_flow_data {
+        send_to_influx(&client, &bucket, futures::stream::iter(vec![val]));
+    }else if let Err(error) = power_flow_data {
+        println!("Error during fetch of power_flow_data occured: {:?}", error);
+    }
+
     Ok(())
 }
 
@@ -352,9 +372,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ip = IpAddr::V4(std::net::Ipv4Addr::from_str(&ip_str)?);
     let fronius = Fronius::connect(ip)?;
     loop {
-        fetch_data(&fronius)?;
-        std::thread::sleep(std::time::Duration::from_secs(15));
         let now = Utc::now();
-        println!("Reporting data at: {now}")
+        println!("Reporting data at: {now}");
+        let res = fetch_data(&fronius);
+
+        if let Err(error) = res {
+            println!("Error during fetch occured: {:?}", error);
+        }else{
+            res?;
+        }
+        std::thread::sleep(std::time::Duration::from_secs(15));
     }
 }
