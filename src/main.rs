@@ -6,6 +6,18 @@ use influxdb2_derive::WriteDataPoint;
 use chrono::prelude::*;
 mod fronius;
 
+#[derive(Debug)]
+struct OptionEmptyError {
+    variable_name: String
+}
+
+impl std::error::Error for OptionEmptyError {}
+
+impl std::fmt::Display for OptionEmptyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Could not access option value for '{}'", self.variable_name)
+    }
+}
 
 #[derive(Default, Debug, WriteDataPoint)]
 #[measurement = "inverter"]
@@ -32,18 +44,19 @@ struct InverterData {
     time: i64,
 }
 
+
 fn get_inverter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<InverterData, Box<dyn std::error::Error>> {
     let response = fronius.get_inverter_realtime_data_device::<fronius::CommonInverterData>(device_id.to_owned())?;
     let data = InverterData {
         device: "Inverter".to_owned(),
-        ac_power: response.pac.value.expect("Value not found in response data"),
-        ac_power_abs: response.sac.value.expect("Value not found in response data"),
-        ac_current: response.iac.value.expect("Value not found in response data"),
-        ac_voltage: response.uac.value.expect("Value not found in response data"),
-        ac_frequency: response.fac.value.expect("Value not found in response data"),
-        dc_current: response.idc.value.expect("Value not found in response data"),
-        dc_voltage: response.udc.value.expect("Value not found in response data"),
-        total_energy: response.total_energy.value.expect("Value not found in response data"),
+        ac_power: response.pac.value.ok_or(OptionEmptyError{ variable_name: "ac_power".to_owned()})?,
+        ac_power_abs: response.sac.value.ok_or(OptionEmptyError{ variable_name: "ac_power_abs".to_owned()})?,
+        ac_current: response.iac.value.ok_or(OptionEmptyError{ variable_name: "ac_current".to_owned()})?,
+        ac_voltage: response.uac.value.ok_or(OptionEmptyError{ variable_name: "ac_voltage".to_owned()})?,
+        ac_frequency: response.fac.value.ok_or(OptionEmptyError{ variable_name: "ac_frequency".to_owned()})?,
+        dc_current: response.idc.value.ok_or(OptionEmptyError{ variable_name: "dc_current".to_owned()})?,
+        dc_voltage: response.udc.value.ok_or(OptionEmptyError{ variable_name: "dc_voltage".to_owned()})?,
+        total_energy: response.total_energy.value.ok_or(OptionEmptyError{ variable_name: "total_energy".to_owned()})?,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
@@ -74,12 +87,12 @@ fn get_inverter_phase_data(fronius: &Fronius, device_id: &DeviceId) -> Result<In
     let response = fronius.get_inverter_realtime_data_device::<fronius::ThreePhaseInverterData>(device_id.to_owned())?;
     let data = InverterPhaseData {
         device: "Inverter".to_owned(),
-        ac_l1_current: response.iac_l1.value.expect("Value not found in response data"),
-        ac_l2_current: response.iac_l2.value.expect("Value not found in response data"),
-        ac_l3_current: response.iac_l3.value.expect("Value not found in response data"),
-        dc_l1_voltage: response.uac_l1.value.expect("Value not found in response data"),
-        dc_l2_voltage: response.uac_l2.value.expect("Value not found in response data"),
-        dc_l3_voltage: response.uac_l3.value.expect("Value not found in response data"),
+        ac_l1_current: response.iac_l1.value.ok_or(OptionEmptyError{ variable_name: "ac_l1_current".to_owned()})?,
+        ac_l2_current: response.iac_l2.value.ok_or(OptionEmptyError{ variable_name: "ac_l2_current".to_owned()})?,
+        ac_l3_current: response.iac_l3.value.ok_or(OptionEmptyError{ variable_name: "ac_l3_current".to_owned()})?,
+        dc_l1_voltage: response.uac_l1.value.ok_or(OptionEmptyError{ variable_name: "dc_l1_voltage".to_owned()})?,
+        dc_l2_voltage: response.uac_l2.value.ok_or(OptionEmptyError{ variable_name: "dc_l2_voltage".to_owned()})?,
+        dc_l3_voltage: response.uac_l3.value.ok_or(OptionEmptyError{ variable_name: "dc_l3_voltage".to_owned()})?,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
@@ -172,19 +185,19 @@ fn get_meter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<MeterData, 
     let response = fronius.get_meter_realtime_data_device(device_id)?;
     let data = MeterData {
         device: "Meter".to_owned(),
-        l1_current: response.current_ac_phase_1.expect("Value not found in response data"),
-        l2_current: response.current_ac_phase_2.expect("Value not found in response data"),
-        l3_current: response.current_ac_phase_3.expect("Value not found in response data"),
-        current: response.current_ac_sum.expect("Value not found in response data"),
-        l1_voltage: response.voltage_ac_phase_1.expect("Value not found in response data"),
-        l2_voltage: response.voltage_ac_phase_2.expect("Value not found in response data"),
-        l3_voltage: response.voltage_ac_phase_3.expect("Value not found in response data"),
-        l12_voltage: response.voltage_ac_phase_to_phase_12.expect("Value not found in response data"),
-        l23_voltage: response.voltage_ac_phase_to_phase_23.expect("Value not found in response data"),
-        l31_voltage: response.voltage_ac_phase_to_phase_31.expect("Value not found in response data"),
-        l1_power: response.power_real_p_phase_1.expect("Value not found in response data"),
-        l2_power: response.power_real_p_phase_2.expect("Value not found in response data"),
-        l3_power: response.power_real_p_phase_3.expect("Value not found in response data"),
+        l1_current: response.current_ac_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_current".to_owned()})?,
+        l2_current: response.current_ac_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_current".to_owned()})?,
+        l3_current: response.current_ac_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_current".to_owned()})?,
+        current: response.current_ac_sum.ok_or(OptionEmptyError{ variable_name: "current".to_owned()})?,
+        l1_voltage: response.voltage_ac_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_voltage".to_owned()})?,
+        l2_voltage: response.voltage_ac_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_voltage".to_owned()})?,
+        l3_voltage: response.voltage_ac_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_voltage".to_owned()})?,
+        l12_voltage: response.voltage_ac_phase_to_phase_12.ok_or(OptionEmptyError{ variable_name: "l12_voltage".to_owned()})?,
+        l23_voltage: response.voltage_ac_phase_to_phase_23.ok_or(OptionEmptyError{ variable_name: "l23_voltage".to_owned()})?,
+        l31_voltage: response.voltage_ac_phase_to_phase_31.ok_or(OptionEmptyError{ variable_name: "l31_voltage".to_owned()})?,
+        l1_power: response.power_real_p_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_power".to_owned()})?,
+        l2_power: response.power_real_p_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_power".to_owned()})?,
+        l3_power: response.power_real_p_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_power".to_owned()})?,
         power: response.power_real_p_sum,
         frequency_average: response.frequency_phase_average,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
@@ -279,16 +292,17 @@ struct PowerFlowData {
     time: i64
 }
 
+
 fn get_power_flow_data(fronius: &Fronius) -> Result<PowerFlowData, Box<dyn std::error::Error>> {
     let response = fronius.get_power_flow_realtime_data()?;
     let data = PowerFlowData {
         device: "Unknown".to_owned(),
-        akku: response.site.p_akku.expect("Value not found in response data"),
-        grid: response.site.p_grid.expect("Value not found in response data"),
-        load: response.site.p_load.expect("Value not found in response data"),
+        akku: response.site.p_akku.ok_or(OptionEmptyError{ variable_name: "akku".to_owned()})?,
+        grid: response.site.p_grid.ok_or(OptionEmptyError{ variable_name: "grid".to_owned()})?,
+        load: response.site.p_load.ok_or(OptionEmptyError{ variable_name: "load".to_owned()})?,
         photovoltaik: response.site.p_pv,
-        relative_autonomy: response.site.rel_autonomy.expect("Value not found in response data"),
-        relative_self_consumption: response.site.rel_self_consumption.expect("Value not found in response data"),
+        relative_autonomy: response.site.rel_autonomy.ok_or(OptionEmptyError{ variable_name: "relative_autonomy".to_owned()})?,
+        relative_self_consumption: response.site.rel_self_consumption.ok_or(OptionEmptyError{ variable_name: "relative_self_consumption".to_owned()})?,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
@@ -305,6 +319,8 @@ fn send_to_influx(client: &Client, bucket: &str,  data: impl futures::Stream<Ite
         println!("Error during influxdb write occured: {:?}", error);
     }
 }
+
+
 
 fn fetch_data(fronius: &Fronius) -> Result<(), Box<dyn std::error::Error>> {
     let interver_id = DeviceId::try_from(1).unwrap();

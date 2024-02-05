@@ -352,7 +352,6 @@ pub struct ThreePhaseInverterData {
     pub rotation_speed_fan_br: Option<UnitAndValue<f64>>,
 }
 
-
 impl DataCollection for CumulationInverterData {
     fn param_value() -> &'static str {
         "CumulationInverterData"
@@ -418,7 +417,6 @@ impl std::fmt::Display for InverterStatusCode {
         }
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DeviceType {
