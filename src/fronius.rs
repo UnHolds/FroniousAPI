@@ -319,7 +319,7 @@ pub struct CommonInverterData {
     pub pac: UnitAndValue<f64>,
     pub iac: UnitAndValue<f64>,
     pub uac: UnitAndValue<f64>,
-    pub fac: UnitAndValue<f64>,
+    pub fac: Option<UnitAndValue<f64>>,
     pub idc: UnitAndValue<f64>,
     pub idc_2: UnitAndValue<f64>,
     pub idc_3: UnitAndValue<f64>,

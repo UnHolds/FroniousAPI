@@ -262,7 +262,7 @@ dependencies = [
  "futures",
  "influxdb2",
  "influxdb2-derive",
- "influxdb2-structmap",
+ "influxdb2-structmap 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits",
  "reqwest",
  "serde",
@@ -529,8 +529,7 @@ dependencies = [
 [[package]]
 name = "influxdb2"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "823356ce3ed697fd640a7db4fbaaa6c2a00bf1eceec66ae0c57c01ef98f06270"
+source = "git+https://github.com/UnHolds/influxdb2#4aad5ecbefe5f74e3289aff1ebe614f27f667509"
 dependencies = [
  "base64 0.13.1",
  "bytes",
@@ -540,7 +539,7 @@ dependencies = [
  "futures",
  "go-parse-duration",
  "influxdb2-derive",
- "influxdb2-structmap",
+ "influxdb2-structmap 0.2.0 (git+https://github.com/UnHolds/influxdb2)",
  "ordered-float",
  "parking_lot 0.11.2",
  "reqwest",
@@ -554,8 +553,7 @@ dependencies = [
 [[package]]
 name = "influxdb2-derive"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "990f899841aa30130fc06f7938e3cc2cbc3d5b92c03fd4b5d79a965045abcf16"
+source = "git+https://github.com/UnHolds/influxdb2#4aad5ecbefe5f74e3289aff1ebe614f27f667509"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -569,6 +567,16 @@ name = "influxdb2-structmap"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1408e712051787357e99ff732e44e8833e79cea0fabc9361018abfbff72b6265"
+dependencies = [
+ "chrono",
+ "num-traits",
+ "ordered-float",
+]
+
+[[package]]
+name = "influxdb2-structmap"
+version = "0.2.0"
+source = "git+https://github.com/UnHolds/influxdb2#4aad5ecbefe5f74e3289aff1ebe614f27f667509"
 dependencies = [
  "chrono",
  "num-traits",

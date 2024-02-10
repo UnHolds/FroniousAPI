@@ -25,21 +25,21 @@ struct InverterData {
     #[influxdb(tag)]
     device: String,
     #[influxdb(field)]
-    ac_power: f64,
+    ac_power: Option<f64>,
     #[influxdb(field)]
-    ac_power_abs: f64,
+    ac_power_abs: Option<f64>,
     #[influxdb(field)]
-    ac_current: f64,
+    ac_current: Option<f64>,
     #[influxdb(field)]
-    ac_voltage: f64,
+    ac_voltage: Option<f64>,
     #[influxdb(field)]
-    ac_frequency: f64,
+    ac_frequency: Option<f64>,
     #[influxdb(field)]
-    dc_current: f64,
+    dc_current: Option<f64>,
     #[influxdb(field)]
-    dc_voltage: f64,
+    dc_voltage: Option<f64>,
     #[influxdb(field)]
-    total_energy: f64,
+    total_energy: Option<f64>,
     #[influxdb(timestamp)]
     time: i64,
 }
@@ -47,16 +47,20 @@ struct InverterData {
 
 fn get_inverter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<InverterData, Box<dyn std::error::Error>> {
     let response = fronius.get_inverter_realtime_data_device::<fronius::CommonInverterData>(device_id.to_owned())?;
+
     let data = InverterData {
         device: "Inverter".to_owned(),
-        ac_power: response.pac.value.ok_or(OptionEmptyError{ variable_name: "ac_power".to_owned()})?,
-        ac_power_abs: response.sac.value.ok_or(OptionEmptyError{ variable_name: "ac_power_abs".to_owned()})?,
-        ac_current: response.iac.value.ok_or(OptionEmptyError{ variable_name: "ac_current".to_owned()})?,
-        ac_voltage: response.uac.value.ok_or(OptionEmptyError{ variable_name: "ac_voltage".to_owned()})?,
-        ac_frequency: response.fac.value.ok_or(OptionEmptyError{ variable_name: "ac_frequency".to_owned()})?,
-        dc_current: response.idc.value.ok_or(OptionEmptyError{ variable_name: "dc_current".to_owned()})?,
-        dc_voltage: response.udc.value.ok_or(OptionEmptyError{ variable_name: "dc_voltage".to_owned()})?,
-        total_energy: response.total_energy.value.ok_or(OptionEmptyError{ variable_name: "total_energy".to_owned()})?,
+        ac_power: response.pac.value,
+        ac_power_abs: response.sac.value,
+        ac_current: response.iac.value,
+        ac_voltage: response.uac.value,
+        ac_frequency: match response.fac {
+            None => None,
+            Some(a) => a.value,
+        } ,
+        dc_current: response.idc.value,
+        dc_voltage: response.udc.value,
+        total_energy: response.total_energy.value,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
@@ -68,17 +72,17 @@ struct InverterPhaseData {
     #[influxdb(tag)]
     device: String,
     #[influxdb(field)]
-    ac_l1_current: f64,
+    ac_l1_current: Option<f64>,
     #[influxdb(field)]
-    ac_l2_current: f64,
+    ac_l2_current: Option<f64>,
     #[influxdb(field)]
-    ac_l3_current: f64,
+    ac_l3_current: Option<f64>,
     #[influxdb(field)]
-    dc_l1_voltage: f64,
+    dc_l1_voltage: Option<f64>,
     #[influxdb(field)]
-    dc_l2_voltage: f64,
+    dc_l2_voltage: Option<f64>,
     #[influxdb(field)]
-    dc_l3_voltage: f64,
+    dc_l3_voltage: Option<f64>,
     #[influxdb(timestamp)]
     time: i64,
 }
@@ -87,12 +91,12 @@ fn get_inverter_phase_data(fronius: &Fronius, device_id: &DeviceId) -> Result<In
     let response = fronius.get_inverter_realtime_data_device::<fronius::ThreePhaseInverterData>(device_id.to_owned())?;
     let data = InverterPhaseData {
         device: "Inverter".to_owned(),
-        ac_l1_current: response.iac_l1.value.ok_or(OptionEmptyError{ variable_name: "ac_l1_current".to_owned()})?,
-        ac_l2_current: response.iac_l2.value.ok_or(OptionEmptyError{ variable_name: "ac_l2_current".to_owned()})?,
-        ac_l3_current: response.iac_l3.value.ok_or(OptionEmptyError{ variable_name: "ac_l3_current".to_owned()})?,
-        dc_l1_voltage: response.uac_l1.value.ok_or(OptionEmptyError{ variable_name: "dc_l1_voltage".to_owned()})?,
-        dc_l2_voltage: response.uac_l2.value.ok_or(OptionEmptyError{ variable_name: "dc_l2_voltage".to_owned()})?,
-        dc_l3_voltage: response.uac_l3.value.ok_or(OptionEmptyError{ variable_name: "dc_l3_voltage".to_owned()})?,
+        ac_l1_current: response.iac_l1.value,
+        ac_l2_current: response.iac_l2.value,
+        ac_l3_current: response.iac_l3.value,
+        dc_l1_voltage: response.uac_l1.value,
+        dc_l2_voltage: response.uac_l2.value,
+        dc_l3_voltage: response.uac_l3.value,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
@@ -148,31 +152,31 @@ struct MeterData {
     #[influxdb(tag)]
     device: String,
     #[influxdb(field)]
-    l1_current: f64,
+    l1_current: Option<f64>,
     #[influxdb(field)]
-    l2_current: f64,
+    l2_current: Option<f64>,
     #[influxdb(field)]
-    l3_current: f64,
+    l3_current: Option<f64>,
     #[influxdb(field)]
-    current: f64,
+    current: Option<f64>,
     #[influxdb(field)]
-    l1_voltage: f64,
+    l1_voltage: Option<f64>,
     #[influxdb(field)]
-    l2_voltage: f64,
+    l2_voltage: Option<f64>,
     #[influxdb(field)]
-    l3_voltage: f64,
+    l3_voltage: Option<f64>,
     #[influxdb(field)]
-    l12_voltage: f64,
+    l12_voltage: Option<f64>,
     #[influxdb(field)]
-    l23_voltage: f64,
+    l23_voltage: Option<f64>,
     #[influxdb(field)]
-    l31_voltage: f64,
+    l31_voltage: Option<f64>,
     #[influxdb(field)]
-    l1_power: f64,
+    l1_power: Option<f64>,
     #[influxdb(field)]
-    l2_power: f64,
+    l2_power: Option<f64>,
     #[influxdb(field)]
-    l3_power: f64,
+    l3_power: Option<f64>,
     #[influxdb(field)]
     power: f64,
     #[influxdb(field)]
@@ -185,19 +189,19 @@ fn get_meter_data(fronius: &Fronius, device_id: &DeviceId) -> Result<MeterData, 
     let response = fronius.get_meter_realtime_data_device(device_id)?;
     let data = MeterData {
         device: "Meter".to_owned(),
-        l1_current: response.current_ac_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_current".to_owned()})?,
-        l2_current: response.current_ac_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_current".to_owned()})?,
-        l3_current: response.current_ac_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_current".to_owned()})?,
-        current: response.current_ac_sum.ok_or(OptionEmptyError{ variable_name: "current".to_owned()})?,
-        l1_voltage: response.voltage_ac_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_voltage".to_owned()})?,
-        l2_voltage: response.voltage_ac_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_voltage".to_owned()})?,
-        l3_voltage: response.voltage_ac_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_voltage".to_owned()})?,
-        l12_voltage: response.voltage_ac_phase_to_phase_12.ok_or(OptionEmptyError{ variable_name: "l12_voltage".to_owned()})?,
-        l23_voltage: response.voltage_ac_phase_to_phase_23.ok_or(OptionEmptyError{ variable_name: "l23_voltage".to_owned()})?,
-        l31_voltage: response.voltage_ac_phase_to_phase_31.ok_or(OptionEmptyError{ variable_name: "l31_voltage".to_owned()})?,
-        l1_power: response.power_real_p_phase_1.ok_or(OptionEmptyError{ variable_name: "l1_power".to_owned()})?,
-        l2_power: response.power_real_p_phase_2.ok_or(OptionEmptyError{ variable_name: "l2_power".to_owned()})?,
-        l3_power: response.power_real_p_phase_3.ok_or(OptionEmptyError{ variable_name: "l3_power".to_owned()})?,
+        l1_current: response.current_ac_phase_1,
+        l2_current: response.current_ac_phase_2,
+        l3_current: response.current_ac_phase_3,
+        current: response.current_ac_sum,
+        l1_voltage: response.voltage_ac_phase_1,
+        l2_voltage: response.voltage_ac_phase_2,
+        l3_voltage: response.voltage_ac_phase_3,
+        l12_voltage: response.voltage_ac_phase_to_phase_12,
+        l23_voltage: response.voltage_ac_phase_to_phase_23,
+        l31_voltage: response.voltage_ac_phase_to_phase_31,
+        l1_power: response.power_real_p_phase_1,
+        l2_power: response.power_real_p_phase_2,
+        l3_power: response.power_real_p_phase_3,
         power: response.power_real_p_sum,
         frequency_average: response.frequency_phase_average,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
@@ -277,17 +281,17 @@ struct PowerFlowData {
     #[influxdb(tag)]
     device: String,
     #[influxdb(field)]
-    akku: f64,
+    akku: Option<f64>,
     #[influxdb(field)]
-    grid: f64,
+    grid: Option<f64>,
     #[influxdb(field)]
-    load: f64,
+    load: Option<f64>,
     #[influxdb(field)]
     photovoltaik: f64,
     #[influxdb(field)]
-    relative_autonomy: f64,
+    relative_autonomy: Option<f64>,
     #[influxdb(field)]
-    relative_self_consumption: f64,
+    relative_self_consumption: Option<f64>,
     #[influxdb(timestamp)]
     time: i64
 }
@@ -297,12 +301,12 @@ fn get_power_flow_data(fronius: &Fronius) -> Result<PowerFlowData, Box<dyn std::
     let response = fronius.get_power_flow_realtime_data()?;
     let data = PowerFlowData {
         device: "Unknown".to_owned(),
-        akku: response.site.p_akku.ok_or(OptionEmptyError{ variable_name: "akku".to_owned()})?,
-        grid: response.site.p_grid.ok_or(OptionEmptyError{ variable_name: "grid".to_owned()})?,
-        load: response.site.p_load.ok_or(OptionEmptyError{ variable_name: "load".to_owned()})?,
+        akku: response.site.p_akku,
+        grid: response.site.p_grid,
+        load: response.site.p_load,
         photovoltaik: response.site.p_pv,
-        relative_autonomy: response.site.rel_autonomy.ok_or(OptionEmptyError{ variable_name: "relative_autonomy".to_owned()})?,
-        relative_self_consumption: response.site.rel_self_consumption.ok_or(OptionEmptyError{ variable_name: "relative_self_consumption".to_owned()})?,
+        relative_autonomy: response.site.rel_autonomy,
+        relative_self_consumption: response.site.rel_self_consumption,
         time: Utc::now().timestamp_nanos_opt().expect("Could not fetch timestamp"),
     };
     Ok(data)
